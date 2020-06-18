@@ -24,6 +24,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
 
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -417,15 +418,15 @@ public class Util {
     return (int) (tile.getProgress() * scale);
   }
 
-  public static void writeFacingToNBT(@Nonnull NBTTagCompound nbtRoot, @Nonnull String name, @Nonnull Direction dir) {
+  public static void writeFacingToNBT(@Nonnull CompoundNBT nbtRoot, @Nonnull String name, @Nonnull Direction dir) {
     short val = -1;
     val = (short) dir.ordinal();
-    nbtRoot.setShort(name, val);
+    nbtRoot.putShort(name, val);
   }
 
-  public static @Nullable Direction readFacingFromNBT(@Nonnull NBTTagCompound nbtRoot, @Nonnull String name) {
+  public static @Nullable Direction readFacingFromNBT(@Nonnull CompoundNBT nbtRoot, @Nonnull String name) {
     short val = -1;
-    if (nbtRoot.hasKey(name)) {
+    if (nbtRoot.contains(name)) {
       val = nbtRoot.getShort(name);
     }
     if (val > 0) {
