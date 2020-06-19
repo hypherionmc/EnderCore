@@ -128,8 +128,8 @@ public class EnderInventory implements IItemHandler {
       if (entry.getValue() != null) {
         CompoundNBT subTag = new CompoundNBT();
         entry.getValue().writeToNBT(subTag);
-        if (!subTag.hasNoTags()) {
-          tag.setTag(NullHelper.notnull(entry.getKey(), "Internal data corruption"), subTag);
+        if (!subTag.isEmpty()) {
+          tag.put(NullHelper.notnull(entry.getKey(), "Internal data corruption"), subTag);
         }
       }
     }
