@@ -2,9 +2,6 @@ package com.enderio.core.common.tweaks;
 
 import com.enderio.core.common.config.AbstractConfigHandler.RestartReqs;
 
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.LoaderState;
 
 public abstract class Tweak {
   private final String name, comment;

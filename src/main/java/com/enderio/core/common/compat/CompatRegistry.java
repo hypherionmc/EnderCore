@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.annotation.Generated;
 
+import net.minecraftforge.fml.ModList;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.enderio.core.EnderCore;
@@ -104,7 +105,7 @@ public enum CompatRegistry {
 
   private static boolean allModsLoaded(String[] modids) {
     for (String s : modids) {
-      if (!Loader.isModLoaded(s)) {
+      if (!ModList.get().isLoaded(s)) {
         return false;
       }
     }

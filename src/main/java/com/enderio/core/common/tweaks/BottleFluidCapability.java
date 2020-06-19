@@ -7,16 +7,20 @@ import com.enderio.core.EnderCore;
 import com.enderio.core.common.config.AbstractConfigHandler.RestartReqs;
 import com.enderio.core.common.config.ConfigHandler;
 
+import net.minecraft.fluid.Fluids;
 import net.minecraft.init.Items;
 import net.minecraft.init.PotionTypes;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.potion.PotionUtils;
+import net.minecraft.potion.Potions;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -35,11 +39,11 @@ public class BottleFluidCapability implements IFluidHandlerItem, ICapabilityProv
   }
 
   private boolean isFull() {
-    return container.getItem() == Items.POTIONITEM && PotionUtils.getPotionFromItem(container) == PotionTypes.WATER;
+    return container.getItem() == Items.POTION && PotionUtils.getPotionFromItem(container) == Potions.WATER;
   }
 
   private void fill() {
-    container = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTIONITEM), PotionTypes.WATER);
+    container = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTION), Potions.WATER);
   }
 
   private boolean isEmpty() {
@@ -57,7 +61,7 @@ public class BottleFluidCapability implements IFluidHandlerItem, ICapabilityProv
       @Override
       @Nullable
       public FluidStack getContents() {
-        return isFull() ? new FluidStack(FluidRegistry.WATER, ConfigHandler.waterBottleAmount) : null;
+        return isFull() ? new FluidStack(Fluids.WATER, ConfigHandler.waterBottleAmount) : null;
       }
 
       @Override
@@ -167,7 +171,7 @@ public class BottleFluidCapability implements IFluidHandlerItem, ICapabilityProv
       if (stack == null) {
         return;
       }
-      if (stack.getItem() == Items.GLASS_BOTTLE || stack.getItem() == Items.POTIONITEM) {
+      if (stack.getItem() == Items.GLASS_BOTTLE || stack.getItem() == Items.POTION) {
         BottleFluidCapability cap = new BottleFluidCapability(stack);
         evt.addCapability(KEY, cap);
       }

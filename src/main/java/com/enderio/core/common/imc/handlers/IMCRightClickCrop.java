@@ -6,7 +6,8 @@ import com.enderio.core.common.handlers.RightClickCropHandler.IPlantInfo;
 import com.enderio.core.common.handlers.RightClickCropHandler.LegacyPlantInfo;
 import com.enderio.core.common.imc.IMCRegistry.IMCBase;
 import com.enderio.core.common.util.Log;
-
+import net.minecraftforge.fml.InterModComms;
+import static net.minecraftforge.fml.InterModComms.IMCMessage;
 
 public class IMCRightClickCrop extends IMCBase {
   public IMCRightClickCrop() {

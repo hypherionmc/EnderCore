@@ -52,7 +52,7 @@ public class SlabRecipesAutomatic extends Tweak {
             if (input == null) {
               input = stack;
               count++;
-            } else if (input.getItem() == stack.getItem() && input.getItemDamage() == stack.getItemDamage()) {
+            } else if (input.getItem() == stack.getItem() && input.getDamage() == stack.getDamage()) {
               count++;
             } else {
               Log.info("Rejected anti-slab recipe for " + outputItem.copy() + " because " + input + " is not " + stack);
@@ -61,7 +61,7 @@ public class SlabRecipesAutomatic extends Tweak {
           }
         }
         if (input != null && count == 3) {
-          Ingredient ingredient = Ingredient.fromStacks(outputItem.copy().splitStack(1));
+          Ingredient ingredient = Ingredient.fromStacks(outputItem.copy().split(1));
           final ResourceLocation inputItemName = input.getItem().getRegistryName();
           ForgeRegistries.RECIPES
               .register(new ShapelessRecipes("", input, new NNList<>(ingredient, ingredient)).setRegistryName(outputItemName.getResourcePath() + "_"

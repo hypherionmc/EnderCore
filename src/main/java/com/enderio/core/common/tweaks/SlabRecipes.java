@@ -5,15 +5,14 @@ import javax.annotation.Nonnull;
 import com.enderio.core.common.util.NullHelper;
 
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.oredict.ShapelessOreRecipe;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class SlabRecipes extends Tweak {
   private static final String[] slabEndingsWood = { "WoodOak", "WoodSpruce", "WoodBirch", "WoodJungle", "WoodAcacia", "WoodDarkOak" };
   private static final String[] slabEndingsStone = { "Stone", "Sandstone", "Cobblestone", "Bricks", "StoneBricks", "NetherBrick", "Quartz" };
-  private static final Block[] slabResults = { Blocks.STONE, Blocks.SANDSTONE, Blocks.COBBLESTONE, Blocks.BRICK_BLOCK, Blocks.STONEBRICK, Blocks.NETHER_BRICK,
+  private static final Block[] slabResults = { Blocks.STONE, Blocks.SANDSTONE, Blocks.COBBLESTONE, Blocks.BRICKS, Blocks.STONE_BRICKS, Blocks.NETHER_BRICKS,
       Blocks.QUARTZ_BLOCK };
 
   public static final SlabRecipes INSTANCE = new SlabRecipes();

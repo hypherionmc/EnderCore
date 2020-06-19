@@ -4,14 +4,14 @@ import com.enderio.core.common.config.AbstractConfigHandler.RestartReqs;
 import com.enderio.core.common.util.NullHelper;
 
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.init.Enchantments;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.ActionResultType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ArrowNockEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class InfiniBow extends Tweak {
 
@@ -33,8 +33,8 @@ public class InfiniBow extends Tweak {
   public void onArrowNock(ArrowNockEvent event) {
     ItemStack stack = event.getBow();
     if (EnchantmentHelper.getEnchantmentLevel(Enchantments.INFINITY, stack) > 0) {
-      event.getEntityPlayer().setActiveHand(NullHelper.notnullF(event.getHand(), "null hand in ArrowNockEvent event"));
-      event.setAction(new ActionResult<ItemStack>(EnumActionResult.SUCCESS, stack));
+      event.getPlayer().setActiveHand(NullHelper.notnullF(event.getHand(), "null hand in ArrowNockEvent event"));
+      event.setAction(new ActionResult<ItemStack>(ActionResultType.SUCCESS, stack));
     }
   }
 }

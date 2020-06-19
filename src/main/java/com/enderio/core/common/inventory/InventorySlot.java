@@ -8,6 +8,7 @@ import com.google.common.base.Predicate;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.items.IItemHandler;
 
@@ -197,14 +198,14 @@ public class InventorySlot implements IItemHandler {
     }
   }
 
-  public void writeToNBT(@Nonnull NBTTagCompound tag) {
+  public void writeToNBT(@Nonnull CompoundNBT tag) {
     if (!itemStack.isEmpty()) {
-      itemStack.writeToNBT(tag);
+      itemStack.write(tag);
     }
   }
 
-  public void readFromNBT(@Nonnull NBTTagCompound tag) {
-    itemStack = new ItemStack(tag);
+  public void readFromNBT(@Nonnull CompoundNBT tag) {
+    itemStack = new ItemStack(ItemStack.EMPTY, 1, tag);
   }
 
   public void clear() {

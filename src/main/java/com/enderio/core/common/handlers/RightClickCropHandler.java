@@ -10,21 +10,16 @@ import com.enderio.core.common.util.NullHelper;
 import com.enderio.core.common.util.stackable.Things;
 import com.google.common.collect.Lists;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockBeetroot;
-import net.minecraft.block.BlockCrops;
-import net.minecraft.block.BlockNetherWart;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.*;
+
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.oredict.OreDictionary;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @Handler
 public class RightClickCropHandler {
@@ -34,10 +29,10 @@ public class RightClickCropHandler {
     ItemStack getSeed();
 
     @Nonnull
-    IBlockState getGrownState();
+    BlockState getGrownState();
 
     @Nonnull
-    IBlockState getResetState();
+    BlockState getResetState();
 
     boolean init(@Nonnull String source);
   }
@@ -50,8 +45,8 @@ public class RightClickCropHandler {
     public boolean optional;
 
     private transient @Nonnull Things seedStack = new Things();
-    private transient @Nonnull IBlockState grownState = Blocks.AIR.getDefaultState();
-    private transient @Nonnull IBlockState resetState = Blocks.AIR.getDefaultState();
+    private transient @Nonnull BlockState grownState = Blocks.AIR.getDefaultState();
+    private transient @Nonnull BlockState resetState = Blocks.AIR.getDefaultState();
 
     public LegacyPlantInfo() { // for json de-serialization
     }
@@ -94,21 +89,21 @@ public class RightClickCropHandler {
           throw new RuntimeException("invalid block specifier '" + block + "' " + source);
         }
       }
-      if (mcblock instanceof BlockBeetroot) { // BlockBeetroot extends BlockCrops, so it needs to be checked first
+      if (mcblock instanceof BeetrootBlock) { // BlockBeetroot extends BlockCrops, so it needs to be checked first
         meta = 3;
         resetMeta = 0;
-        grownState = mcblock.getDefaultState().withProperty(BlockBeetroot.BEETROOT_AGE, 3);
-        resetState = mcblock.getDefaultState().withProperty(BlockBeetroot.BEETROOT_AGE, 0);
-      } else if (mcblock instanceof BlockCrops) {
-        meta = ((BlockCrops) mcblock).getMaxAge();
+        grownState = mcblock.getDefaultState().with(BeetrootBlock.BEETROOT_AGE, 3);
+        resetState = mcblock.getDefaultState().with(BeetrootBlock.BEETROOT_AGE, 0);
+      } else if (mcblock instanceof CropsBlock) {
+        meta = ((CropsBlock) mcblock).getMaxAge();
         resetMeta = 0;
-        grownState = mcblock.getDefaultState().withProperty(BlockCrops.AGE, ((BlockCrops) mcblock).getMaxAge());
-        resetState = mcblock.getDefaultState().withProperty(BlockCrops.AGE, 0);
-      } else if (mcblock instanceof BlockNetherWart) {
+        grownState = mcblock.getDefaultState().with(CropsBlock.AGE, ((CropsBlock) mcblock).getMaxAge());
+        resetState = mcblock.getDefaultState().with(CropsBlock.AGE, 0);
+      } else if (mcblock instanceof NetherWartBlock) {
         meta = 3;
         resetMeta = 0;
-        grownState = mcblock.getDefaultState().withProperty(BlockNetherWart.AGE, 3);
-        resetState = mcblock.getDefaultState().withProperty(BlockNetherWart.AGE, 0);
+        grownState = mcblock.getDefaultState().with(NetherWartBlock.AGE, 3);
+        resetState = mcblock.getDefaultState().with(NetherWartBlock.AGE, 0);
       } else {
         grownState = mcblock.getStateFromMeta(meta);
         resetState = mcblock.getStateFromMeta(resetMeta);
@@ -124,13 +119,13 @@ public class RightClickCropHandler {
 
     @Override
     @Nonnull
-    public IBlockState getGrownState() {
+    public BlockState getGrownState() {
       return grownState;
     }
 
     @Override
     @Nonnull
-    public IBlockState getResetState() {
+    public BlockState getResetState() {
       return resetState;
     }
   }
@@ -154,18 +149,18 @@ public class RightClickCropHandler {
       return;
     }
 
-    if (event.getEntityPlayer().getHeldItemMainhand().isEmpty() || !event.getEntityPlayer().isSneaking()) {
+    if (event.getPlayer().getHeldItemMainhand().isEmpty() || !event.getPlayer().isSneaking()) {
       BlockPos pos = event.getPos();
-      IBlockState blockState = event.getWorld().getBlockState(pos);
+      BlockState blockState = event.getWorld().getBlockState(pos);
       for (IPlantInfo info : plants) {
         if (info.getGrownState() == blockState) {
           if (event.getWorld().isRemote) {
-            event.getEntityPlayer().swingArm(EnumHand.MAIN_HAND);
+            event.getPlayer().swingArm(Hand.MAIN_HAND);
           } else {
             currentPlant = info;
             blockState.getBlock().dropBlockAsItem(NullHelper.notnullF(event.getWorld(), "RightClickBlock.getWorld()"), pos, blockState, 0);
             currentPlant = null;
-            IBlockState newBS = info.getResetState();
+            BlockState newBS = info.getResetState();
             event.getWorld().setBlockState(pos, newBS, 3);
             event.setCanceled(true);
           }
@@ -181,7 +176,7 @@ public class RightClickCropHandler {
       for (int i = 0; i < event.getDrops().size(); i++) {
         ItemStack stack = event.getDrops().get(i);
         if (stack.getItem() == currentPlant.getSeed().getItem()
-            && (currentPlant.getSeed().getItemDamage() == OreDictionary.WILDCARD_VALUE || stack.getItemDamage() == currentPlant.getSeed().getItemDamage())) {
+            && (currentPlant.getSeed().getDamage() == OreDictionary.WILDCARD_VALUE || stack.getDamage() == currentPlant.getSeed().getDamage())) {
           stack.shrink(1);
           if (stack.isEmpty()) {
             event.getDrops().remove(i);
