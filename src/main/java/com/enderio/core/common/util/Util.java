@@ -74,7 +74,7 @@ public class Util {
     while (intExp > 0) {
       int j = ExperienceOrbEntity.getXPSplit(intExp);
       intExp -= j;
-      thePlayer.world.spawnEntity(new ExperienceOrbEntity(thePlayer.world, thePlayer.getPosX(), thePlayer.getPosY() + 0.5D, thePlayer.getPosZ() + 0.5D, j));
+      thePlayer.world.addEntity(new ExperienceOrbEntity(thePlayer.world, thePlayer.getPosX(), thePlayer.getPosY() + 0.5D, thePlayer.getPosZ() + 0.5D, j));
     }
   }
 
@@ -108,7 +108,7 @@ public class Util {
     }
 
     ItemEntity entityitem = createEntityItem(world, stack, x, y, z, doRandomSpread);
-    world.spawnEntity(entityitem);
+    world.addEntity(entityitem);
   }
 
   public static ItemEntity createEntityItem(@Nonnull World world, @Nonnull ItemStack stack, double x, double y, double z) {
@@ -144,12 +144,12 @@ public class Util {
       double d2 = (world.rand.nextFloat() * f1) + (1.0F - f1) * 0.5D;
       ItemEntity entityitem = new ItemEntity(world, x + d, y + d1, z + d2, stack);
       entityitem.setDefaultPickupDelay();
-      world.spawnEntity(entityitem);
+      world.addEntity(entityitem);
     } else {
       ItemEntity entityitem = new ItemEntity(world, x + 0.5, y + 0.5, z + 0.5, stack);
       entityitem.setMotion(0,0,0);
       entityitem.setNoPickupDelay();
-      world.spawnEntity(entityitem);
+      world.addEntity(entityitem);
     }
   }
 
@@ -368,7 +368,7 @@ public class Util {
 
           if (!ignoreBlockWithoutBoundingBox || iblockstate1.getMaterial() == Material.PORTAL
               || iblockstate1.getCollisionBoundingBox(world, blockpos) != Block.NULL_AABB) {
-            if (block1.canCollideCheck(iblockstate1, includeLiquids)) {
+            if (block1.can(iblockstate1, includeLiquids)) {
               @Nonnull
               RayTraceResult raytraceresult1 = iblockstate1.collisionRayTrace(world, blockpos, startVec, endVec);
               result.add(raytraceresult1);

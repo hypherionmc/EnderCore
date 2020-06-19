@@ -75,7 +75,7 @@ public class ItemUtil {
    */
   public static void spawnItemInWorldWithRandomMotion(@Nonnull ItemEntity entity) {
     entity.setDefaultPickupDelay();
-    entity.world.spawnEntity(entity);
+    entity.world.addEntity(entity);
   }
 
   /**
@@ -192,7 +192,7 @@ public class ItemUtil {
       if (!entityItem.isAlive()) {
         return ItemStack.EMPTY;
       } else {
-        entityItem.setDead();
+        entityItem.setAir(1);
         return entityItem.getItem();
       }
     }

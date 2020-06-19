@@ -25,7 +25,7 @@ public class NNList<E> extends NonNullList<E> {
 
   public static final @Nonnull NNList<Direction> FACING = NNList.of(Direction.class);
 
-  public static final @Nonnull NNList<Direction> FACING_HORIZONTAL = new NNList<Direction>(EnumFacing.HORIZONTALS);
+  public static final @Nonnull NNList<Direction> FACING_HORIZONTAL = new NNList<Direction>(Direction.Plane.HORIZONTAL);
 
   public static final @Nonnull NNList<BlockRenderLayer> RENDER_LAYER = NNList.of(BlockRenderLayer.class);
 

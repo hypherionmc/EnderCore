@@ -5,7 +5,7 @@ import javax.annotation.Nonnull;
 import com.enderio.core.EnderCore;
 
 import net.minecraft.potion.Effect;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.text.TextFormatting;
 
 public class EnderStringUtils {
@@ -99,8 +99,8 @@ public class EnderStringUtils {
       return TextFormatting.GREEN;
   }
 
-  public static @Nonnull String getEffectNameWithLevel(@Nonnull Effect effect) {
-    String name = EnderCore.lang.localize(effect.getName(), false);
+  public static @Nonnull String getEffectNameWithLevel(@Nonnull EffectInstance effect) {
+    String name = EnderCore.lang.localize(effect.getEffectName(), false);
 
     if (effect.getAmplifier() > 0) {
       name += " " + EnderCore.lang.localize("enchantment.level." + (effect.getAmplifier() + 1), false);

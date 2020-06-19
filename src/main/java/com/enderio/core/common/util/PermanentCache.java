@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 public class PermanentCache<I> extends WorldCache<I> {
 
@@ -26,7 +26,7 @@ public class PermanentCache<I> extends WorldCache<I> {
 
   @Override
   protected @Nonnull File getSaveFile() {
-    if (FMLCommonHandler.instance().getSide().isServer()) {
+    if (FMLEnvironment.dist.isDedicatedServer()) {
       return new File(ident + ".dat");
     }
     return new File("saves", ident + ".dat");

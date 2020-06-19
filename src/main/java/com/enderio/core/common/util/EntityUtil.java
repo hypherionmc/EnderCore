@@ -17,6 +17,7 @@ import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -52,11 +53,11 @@ public class EntityUtil {
     type = type == 3 ? 4 : type;
     expl.putByte("Type", type);
 
-    NBTTagList explosions = new NBTTagList();
-    explosions.appendTag(expl);
+    ListNBT explosions = new ListNBT();
+    explosions.add(expl);
 
     CompoundNBT fireworkTag = new CompoundNBT();
-    fireworkTag.setTag("Explosions", explosions);
+    fireworkTag.put("Explosions", explosions);
     fireworkTag.putByte("Flight", (byte) 1);
     firework.setTagInfo("Fireworks", fireworkTag);
 
@@ -86,7 +87,7 @@ public class EntityUtil {
       }
     }
 
-    world.spawnEntity(getRandomFirework(world, spawnPos));
+    world.addEntity(getRandomFirework(world, spawnPos));
   }
 
   private static double moveRandomly(double base, double range) {

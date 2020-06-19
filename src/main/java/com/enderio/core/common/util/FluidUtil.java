@@ -9,7 +9,12 @@ import com.enderio.core.api.common.util.ITankAccess;
 import com.enderio.core.common.util.NNList.Callback;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
@@ -19,6 +24,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 public class FluidUtil {
 
@@ -50,7 +56,7 @@ public class FluidUtil {
     return NullHelper.notnullF(FLUID_ITEM_HANDLER, "IFluidHandlerItem capability is missing");
   }
 
-  public static @Nullable IFluidHandler getFluidHandlerCapability(@Nullable ICapabilityProvider provider, @Nullable EnumFacing side) {
+  public static @Nullable IFluidHandler getFluidHandlerCapability(@Nullable ICapabilityProvider provider, @Nullable Direction side) {
     if (provider != null && provider.hasCapability(getFluidCapability(), side)) {
       return provider.getCapability(getFluidCapability(), side);
     }
@@ -64,11 +70,11 @@ public class FluidUtil {
     return null;
   }
 
-  public static EnumMap<EnumFacing, IFluidHandler> getNeighbouringFluidHandlers(@Nonnull final World worldObj, @Nonnull final BlockPos location) {
-    final EnumMap<EnumFacing, IFluidHandler> res = new EnumMap<EnumFacing, IFluidHandler>(EnumFacing.class);
-    NNList.FACING.apply(new Callback<EnumFacing>() {
+  public static EnumMap<Direction, IFluidHandler> getNeighbouringFluidHandlers(@Nonnull final World worldObj, @Nonnull final BlockPos location) {
+    final EnumMap<Direction, IFluidHandler> res = new EnumMap<Direction, IFluidHandler>(Direction.class);
+    NNList.FACING.apply(new Callback<Direction>() {
       @Override
-      public void apply(@Nonnull EnumFacing dir) {
+      public void apply(@Nonnull Direction dir) {
         IFluidHandler fh = getFluidHandler(worldObj, location.offset(dir), dir.getOpposite());
         if (fh != null) {
           res.put(dir, fh);
@@ -78,7 +84,7 @@ public class FluidUtil {
     return res;
   }
 
-  static @Nullable IFluidHandler getFluidHandler(@Nonnull World worldObj, @Nonnull BlockPos location, @Nullable EnumFacing side) {
+  static @Nullable IFluidHandler getFluidHandler(@Nonnull World worldObj, @Nonnull BlockPos location, @Nullable Direction side) {
     return getFluidHandlerCapability(worldObj.getTileEntity(location), side);
   }
 
@@ -106,7 +112,7 @@ public class FluidUtil {
     return getFluidHandlerCapability(stack) != null;
   }
 
-  public static boolean isFluidContainer(@Nonnull ICapabilityProvider provider, @Nullable EnumFacing side) {
+  public static boolean isFluidContainer(@Nonnull ICapabilityProvider provider, @Nullable Direction side) {
     if (provider instanceof ItemStack) {
       Log.warn("isFluidContainer(ICapabilityProvider, EnumFacing) is not for ItemStacks");
       return isFluidContainer((ItemStack) provider);
@@ -248,11 +254,11 @@ public class FluidUtil {
    * @param tank
    * @return true if a container was filled, false otherwise
    */
-  public static boolean fillPlayerHandItemFromInternalTank(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull EntityPlayer entityPlayer,
-      @Nonnull EnumHand hand, @Nonnull ITankAccess tank) {
+  public static boolean fillPlayerHandItemFromInternalTank(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull PlayerEntity entityPlayer,
+                                                           @Nonnull Hand hand, @Nonnull ITankAccess tank) {
 
     ItemStack heldItem = entityPlayer.getHeldItem(hand);
-    boolean doFill = !(entityPlayer.capabilities.isCreativeMode && heldItem.getItem() == Items.BUCKET);
+    boolean doFill = !(entityPlayer.isCreative() && heldItem.getItem() == Items.BUCKET);
 
     for (FluidTank subTank : tank.getOutputTanks()) {
       FluidAndStackResult fill = tryFillContainer(entityPlayer.getHeldItem(hand), subTank.getFluid());
@@ -279,9 +285,9 @@ public class FluidUtil {
           }
 
           if (!world.isRemote) {
-            double x0 = (pos.getX() + 0.5D + entityPlayer.posX) / 2.0D;
-            double y0 = (pos.getY() + 0.5D + entityPlayer.posY + 0.5D) / 2.0D;
-            double z0 = (pos.getZ() + 0.5D + entityPlayer.posZ) / 2.0D;
+            double x0 = (pos.getX() + 0.5D + entityPlayer.getPosX()) / 2.0D;
+            double y0 = (pos.getY() + 0.5D + entityPlayer.getPosY() + 0.5D) / 2.0D;
+            double z0 = (pos.getZ() + 0.5D + entityPlayer.getPosZ()) / 2.0D;
             Util.dropItems(world, fill.result.itemStack, x0, y0, z0, true);
           }
         }
@@ -292,8 +298,8 @@ public class FluidUtil {
     return false;
   }
 
-  public static boolean fillInternalTankFromPlayerHandItem(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull EntityPlayer entityPlayer,
-      @Nonnull EnumHand hand, @Nonnull ITankAccess tank) {
+  public static boolean fillInternalTankFromPlayerHandItem(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull PlayerEntity entityPlayer,
+      @Nonnull Hand hand, @Nonnull ITankAccess tank) {
     FluidAndStackResult fill = tryDrainContainer(entityPlayer.getHeldItem(hand), tank);
     if (fill.result.fluidStack == null) {
       return false;
@@ -306,7 +312,7 @@ public class FluidUtil {
     inputTank.setFluid(fill.remainder.fluidStack);
     tank.setTanksDirty();
 
-    if (!entityPlayer.capabilities.isCreativeMode) {
+    if (!entityPlayer.isCreative()) {
       if (fill.remainder.itemStack.isEmpty()) {
         entityPlayer.setHeldItem(hand, fill.result.itemStack);
         return true;
@@ -324,9 +330,9 @@ public class FluidUtil {
       }
 
       if (!world.isRemote) {
-        double x0 = (pos.getX() + 0.5D + entityPlayer.posX) / 2.0D;
-        double y0 = (pos.getY() + 0.5D + entityPlayer.posY + 0.5D) / 2.0D;
-        double z0 = (pos.getZ() + 0.5D + entityPlayer.posZ) / 2.0D;
+        double x0 = (pos.getX() + 0.5D + entityPlayer.getPosX()) / 2.0D;
+        double y0 = (pos.getY() + 0.5D + entityPlayer.getPosY() + 0.5D) / 2.0D;
+        double z0 = (pos.getZ() + 0.5D + entityPlayer.getPosZ()) / 2.0D;
         Util.dropItems(world, fill.result.itemStack, x0, y0, z0, true);
       }
     }

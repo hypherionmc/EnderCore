@@ -9,6 +9,9 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -53,7 +56,7 @@ public class WorldCache<I> {
 
   @SubscribeEvent
   public void onWorldSave(WorldEvent.Save event) {
-    if (!event.getWorld().isRemote() && event.getWorld().provider.getDimension() == 0) {
+    if (!event.getWorld().isRemote() && event.getWorld().getDimension().getType() == DimensionType.OVERWORLD) {
       try {
         saveData(getSaveFile());
       } catch (IOException e) {
@@ -64,7 +67,7 @@ public class WorldCache<I> {
 
   @SubscribeEvent
   public void onWorldLoad(WorldEvent.Load event) {
-    if (!event.getWorld().isRemote() && event.getWorld().provider.getDimension() == 0) {
+    if (!event.getWorld().isRemote() && event.getWorld().getDimension().getType() == DimensionType.OVERWORLD) {
       try {
         loadData(getSaveFile());
       } catch (IOException e) {
@@ -76,19 +79,19 @@ public class WorldCache<I> {
 
   protected void loadData(File file) throws IOException {
     if (!file.createNewFile()) {
-      NBTTagCompound tag = null;
+      CompoundNBT tag = null;
       try {
         tag = CompressedStreamTools.read(file);
       } catch (Exception e) {
         generateIDs();
         return;
       }
-      if (tag != null && tag.hasKey("ItemData")) {
+      if (tag != null && tag.contains("ItemData")) {
         // name <-> id mappings
-        NBTTagList list = tag.getTagList("ItemData", Constants.NBT.TAG_COMPOUND);
-        for (int i = 0; i < list.tagCount(); i++) {
-          NBTTagCompound dataTag = list.getCompoundTagAt(i);
-          int id = dataTag.getInteger("V");
+        ListNBT list = tag.getList("ItemData", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+          CompoundNBT dataTag = list.getCompound(i);
+          int id = dataTag.getInt("V");
           String name = dataTag.getString("K");
           nameToID.put(name, id);
           if (objToName.values().contains(name)) {
@@ -110,21 +113,21 @@ public class WorldCache<I> {
   }
 
   protected void saveData(@Nonnull File file) throws IOException {
-    NBTTagCompound data = new NBTTagCompound();
+    CompoundNBT data = new CompoundNBT();
 
     // name <-> id mappings
-    NBTTagList dataList = new NBTTagList();
+    ListNBT dataList = new ListNBT();
     for (String key : nameToID.keySet()) {
       if (key != null) {
-        NBTTagCompound tag = new NBTTagCompound();
-        tag.setString("K", key);
-        tag.setInteger("V", nameToID.get(key));
-        dataList.appendTag(tag);
+        CompoundNBT tag = new CompoundNBT();
+        tag.putString("K", key);
+        tag.putInt("V", nameToID.get(key));
+        dataList.add(tag);
       }
     }
-    data.setTag("ItemData", dataList);
+    data.put("ItemData", dataList);
     // blocked ids
-    data.setIntArray("BlockedItemIds", NullHelper.notnullJ(ArrayUtils.toPrimitive(blockedIDs.toArray(new Integer[0])), "ArrayUtils.toPrimitive()"));
+    data.putIntArray("BlockedItemIds", NullHelper.notnullJ(ArrayUtils.toPrimitive(blockedIDs.toArray(new Integer[0])), "ArrayUtils.toPrimitive()"));
 
     CompressedStreamTools.write(data, file);
   }

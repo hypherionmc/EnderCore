@@ -2,13 +2,9 @@ package com.enderio.core.common.util;
 
 import javax.annotation.Nonnull;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextComponentString;
 
 public class ArrayInventory implements IInventory {
 
@@ -64,7 +60,7 @@ public class ArrayInventory implements IInventory {
 
   }
 
-  @Override
+  /*@Override
   public @Nonnull String getName() {
     return "ArrayInventory";
   }
@@ -77,7 +73,7 @@ public class ArrayInventory implements IInventory {
   @Override
   public @Nonnull ITextComponent getDisplayName() {
     return new StringTextComponent(getName());
-  }
+  }*/
 
   @Override
   public @Nonnull ItemStack removeStackFromSlot(int index) {
@@ -95,7 +91,7 @@ public class ArrayInventory implements IInventory {
   }
 
 
-  @Override
+  /*@Override
   public int getField(int id) {
     return 0;
   }
@@ -107,7 +103,7 @@ public class ArrayInventory implements IInventory {
   @Override
   public int getFieldCount() {
     return 0;
-  }
+  }*/
 
   @Override
   public void clear() {

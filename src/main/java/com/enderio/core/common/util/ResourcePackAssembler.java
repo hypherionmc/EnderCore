@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 
 import net.minecraft.resources.IResourcePack;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.commons.io.FileUtils;
 
 import com.enderio.core.EnderCore;
@@ -200,7 +201,7 @@ public class ResourcePackAssembler {
     if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
       try {
         if (defaultResourcePacks == null) {
-          defaultResourcePacks = ReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getInstance(), "defaultResourcePacks", "field_110449_ao", "ap");
+          defaultResourcePacks = ObfuscationReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getInstance(), "defaultResourcePacks");
         }
 
         File dest = new File(dir.getParent() + "/resourcepack/" + zip.getName());
@@ -209,7 +210,7 @@ public class ResourcePackAssembler {
         EnderFileUtils.safeDelete(zip);
         writeNewFile(new File(dest.getParent() + "/readme.txt"),
             EnderCore.lang.localize("resourcepack.readme") + "\n\n" + EnderCore.lang.localize("resourcepack.readme2"));
-        try (final FileResourcePack frp = new FileResourcePack(dest)) {
+        try (final ResourcePackAssembler frp = new ResourcePackAssembler()) {
           defaultResourcePacks.add(frp);
         }
       } catch (Exception e) {
