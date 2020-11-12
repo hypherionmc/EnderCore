@@ -21,8 +21,8 @@ public interface IGuiOverlay extends IHideable {
 
     boolean handleMouseInput(int x, int y, int b);
 
-    boolean isMouseInBounds(int mouseX, int mouseY);
+    boolean isMouseInBounds(double mouseX, double mouseY);
     
-    void guiClosed();
+    void onClose();
 
 }

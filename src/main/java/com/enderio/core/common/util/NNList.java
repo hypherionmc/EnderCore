@@ -16,8 +16,6 @@ import javax.annotation.Nullable;
 import net.minecraft.util.Direction;
 import org.apache.commons.lang3.Validate;
 
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 
@@ -25,9 +23,7 @@ public class NNList<E> extends NonNullList<E> {
 
   public static final @Nonnull NNList<Direction> FACING = NNList.of(Direction.class);
 
-  public static final @Nonnull NNList<Direction> FACING_HORIZONTAL = new NNList<Direction>(Direction.Plane.HORIZONTAL);
-
-  public static final @Nonnull NNList<BlockRenderLayer> RENDER_LAYER = NNList.of(BlockRenderLayer.class);
+  public static final @Nonnull NNList<Direction> FACING_HORIZONTAL = new NNList<Direction>(Direction.Plane.HORIZONTAL.iterator());
 
   public static final @Nonnull NNList<BlockPos> SHELL = new NNList<>();
   static {
@@ -50,6 +46,13 @@ public class NNList<E> extends NonNullList<E> {
   public NNList(Collection<E> fillWith) {
     this();
     addAll(fillWith);
+  }
+
+  public NNList(Iterator<E> fillWith) {
+    this();
+    while (fillWith.hasNext()) {
+      add(fillWith.next());
+    }
   }
 
   public NNList(int size, @Nonnull E fillWith) {

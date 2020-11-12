@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 
 import com.enderio.core.common.network.EnderPacketHandler;
 
+import net.minecraft.network.IPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -26,11 +27,11 @@ public interface IProgressTile {
   TileEntity getTileEntity();
 
   @Nonnull
-  IMessage getProgressPacket();
+  IPacket getProgressPacket();
 
 
   public static @Nullable
-  Packet getProgressPacket(Object o) {
+  IPacket getProgressPacket(Object o) {
     if (o instanceof IProgressTile) {
       return EnderPacketHandler.INSTANCE.getPacketFrom(((IProgressTile) o).getProgressPacket());
     }

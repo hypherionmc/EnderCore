@@ -6,7 +6,17 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.lwjgl.input.Mouse;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.java.games.input.Mouse;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
+import net.minecraft.util.text.ITextComponent;
 
 import com.enderio.core.api.client.gui.IGuiOverlay;
 import com.enderio.core.api.client.gui.IGuiScreen;
@@ -20,17 +30,11 @@ import com.enderio.core.common.util.NNList;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
-public abstract class GuiContainerBase extends GuiContainer implements ToolTipRenderer, IGuiScreen {
+public abstract class BaseContainerScreen<T extends Container> extends ContainerScreen<T> implements ToolTipRenderer, IGuiScreen {
 
   protected @Nonnull ToolTipManager ttMan = new ToolTipManager();
   protected @Nonnull NNList<IGuiOverlay> overlays = new NNList<IGuiOverlay>();
@@ -41,13 +45,13 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
 
   protected @Nullable VScrollbar draggingScrollbar;
 
-  protected GuiContainerBase(@Nonnull Container par1Container) {
-    super(par1Container);
+  protected BaseContainerScreen(T screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    super(screenContainer, inv, titleIn);
   }
 
   @Override
-  public void initGui() {
-    super.initGui();
+  public void init() {
+    super.init();
     fixupGuiPosition();
     for (IGuiOverlay overlay : overlays) {
       overlay.init(this);
@@ -61,7 +65,7 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
   }
 
   @Override
-  protected void keyTyped(char c, int key) throws IOException {
+  public boolean charTyped(char codePoint, int modifiers) {
     TextFieldEnder focused = null;
     for (TextFieldEnder f : textFields) {
       if (f.isFocused()) {
@@ -70,26 +74,26 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
     }
 
     // If esc is pressed
-    if (key == 1) {
+    if (codePoint == 1) {
       // If there is a focused text field unfocus it
       if (focused != null) {
-        focused.setFocused(false);
+        focused.changeFocus(false);
         focused = null;
-        return;
+        return true; // TODO: Check this is right
       } else if (!hideOverlays()) { // Otherwise close overlays/GUI
-        this.mc.player.closeScreen();
-        return;
+        this.minecraft.player.closeScreen();
+        return true; // TODO: Check this is right
       }
     }
 
     // If the user pressed tab, switch to the next text field, or unfocus if there are none
-    if (c == '\t') {
+    if (codePoint == '\t') {
       for (int i = 0; i < textFields.size(); i++) {
         TextFieldEnder f = textFields.get(i);
         if (f.isFocused()) {
-          textFields.get((i + 1) % textFields.size()).setFocused(true);
-          f.setFocused(false);
-          return;
+          textFields.get((i + 1) % textFields.size()).changeFocus(true);
+          f.changeFocus(false);
+          return true; // TODO: Check this is right
         }
       }
     }
@@ -97,28 +101,28 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
     // If there is a focused text field, attempt to type into it
     if (focused != null) {
       String old = focused.getText();
-      if (focused.textboxKeyTyped(c, key)) {
+      if (focused.charTyped(codePoint, modifiers)) {
         onTextFieldChanged(focused, old);
-        return;
+        return true; // TODO: Check this is right
       }
     }
 
     // More NEI behavior, f key focuses first text field
-    if (c == 'f' && focused == null && !textFields.isEmpty()) {
+    if (codePoint == 'f' && focused == null && !textFields.isEmpty()) {
       focused = textFields.get(0);
-      focused.setFocused(true);
+      focused.changeFocus(true);
     }
 
     // Finally if 'e' was pressed but not captured by a text field, close the overlays/GUI
-    if (key == this.mc.gameSettings.keyBindInventory.getKeyCode()) {
+    if (codePoint == this.minecraft.gameSettings.keyBindInventory.getKey().getKeyCode()) {
       if (!hideOverlays()) {
-        this.mc.player.closeScreen();
+        this.minecraft.player.closeScreen();
       }
-      return;
+      return true; // TODO: Check this is right
     }
 
     // If the key was not captured, let NEI do its thing
-    super.keyTyped(c, key);
+    return super.charTyped(codePoint, modifiers);
   }
 
   protected final void setText(@Nonnull TextFieldEnder tf, @Nonnull String newText) {
@@ -141,17 +145,16 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
     return false;
   }
 
-  @Override
   public void addToolTip(@Nonnull GuiToolTip toolTip) {
     ttMan.addToolTip(toolTip);
   }
 
   @Override
-  public void updateScreen() {
-    super.updateScreen();
+  public void tick() {
+    super.tick();
 
-    for (GuiTextField f : textFields) {
-      f.updateCursorCounter();
+    for (TextFieldWidget f : textFields) {
+      f.tick();
     }
   }
 
@@ -173,20 +176,67 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
   }
 
   @Override
-  protected boolean isPointInRegion(int p_146978_1_, int p_146978_2_, int p_146978_3_, int p_146978_4_, int p_146978_5_, int p_146978_6_) {
-    int x = Mouse.getEventX() * this.width / this.mc.displayWidth;
-    int y = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+  protected boolean isPointInRegion(int x, int y, int width, int height, double mouseX, double mouseY) {
+    double mX = mouseX * this.width / this.minecraft.getMainWindow().getWidth();
+    double mY = this.height - mouseY * this.height / this.minecraft.getMainWindow().getHeight() - 1;
     for (IGuiOverlay overlay : overlays) {
-      if (overlay != null && overlay.isVisible() && overlay.isMouseInBounds(x, y)) {
+      if (overlay != null && overlay.isVisible() && overlay.isMouseInBounds(mX, mY)) {
         return false;
       }
     }
-    return super.isPointInRegion(p_146978_1_, p_146978_2_, p_146978_3_, p_146978_4_, p_146978_5_, p_146978_6_);
+    return super.isPointInRegion(x, y, width, height, mouseX, mouseY);
   }
 
   @Override
   public @Nonnull GhostSlotHandler getGhostSlotHandler() {
     return ghostSlotHandler;
+  }
+
+  @Override
+  public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    for (TextFieldWidget f : textFields) {
+      f.mouseClicked(mouseX, mouseY, button);
+    }
+    if (!scrollbars.isEmpty()) {
+      if (draggingScrollbar != null) {
+        draggingScrollbar.mouseClicked(mouseX, mouseY, button);
+        return;
+      }
+      for (VScrollbar vs : scrollbars) {
+        if (vs.mouseClicked(mouseX, mouseY, button)) {
+          draggingScrollbar = vs;
+          return;
+        }
+      }
+    }
+    if (!getGhostSlotHandler().getGhostSlots().isEmpty()) {
+      GhostSlot slot = getGhostSlotHandler().getGhostSlotAt(this, mouseX, mouseY);
+      if (slot != null) {
+        getGhostSlotHandler().ghostSlotClicked(this, slot, mouseX, mouseY, button);
+        return;
+      }
+    }
+    // Right click field clearing
+    if (button == 1) {
+      for (TextFieldEnder tf : textFields) {
+        if (tf.contains(mouseX, mouseY)) {
+          setText(tf, "");
+        }
+      }
+    }
+    // Button events for non-left-clicks
+    if (button >= 1) {
+      for (Object obj : buttons) {
+        if (obj instanceof IconButton) {
+          IconButton btn = (IconButton) obj;
+          if (btn.mousePressedButton(mc, x, y, button)) {
+            btn.playPressSound(this.mc.getSoundHandler());
+            actionPerformedButton(btn, button);
+          }
+        }
+      }
+    }
+    super.mouseClicked(mouseX, mouseY, button);
   }
 
   @Override
@@ -268,10 +318,6 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
     }
   }
 
-  protected void actionPerformedButton(@Nonnull IconButton btn, int mouseButton) throws IOException {
-    actionPerformed(btn);
-  }
-
   public void addOverlay(@Nonnull IGuiOverlay overlay) {
     overlays.add(overlay);
   }
@@ -311,133 +357,132 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
   private int realMx, realMy;
 
   @Override
-  protected final void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-    drawForegroundImpl(mouseX, mouseY);
+  protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int x, int y) {
+    drawForegroundImpl(matrixStack, x, y);
 
-    GlStateManager.pushMatrix();
-    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-    GlStateManager.disableDepth();
-    zLevel = 300.0F;
-    itemRender.zLevel = 300.0F;
+    matrixStack.push();
+    RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+    RenderSystem.disableDepthTest();
+//    zLevel = 300.0F;
+    itemRenderer.zLevel = 300.0F;
     for (IGuiOverlay overlay : overlays) {
       if (overlay != null && overlay.isVisible()) {
-        overlay.draw(realMx, realMy, mc.getRenderPartialTicks());
+        overlay.draw(realMx, realMy, minecraft.getRenderPartialTicks());
       }
     }
-    zLevel = 0F;
-    itemRender.zLevel = 0F;
-    GlStateManager.enableDepth();
-    GlStateManager.popMatrix();
+//    zLevel = 0F;
+    itemRenderer.zLevel = 0F;
+    RenderSystem.enableDepthTest();
+    matrixStack.pop();
   }
 
   @Override
-  protected void drawGuiContainerBackgroundLayer(float par1, int mouseX, int mouseY) {
+  protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int x, int y) {
     for (IDrawingElement drawingElement : drawingElements) {
-      drawingElement.drawGuiContainerBackgroundLayer(par1, mouseX, mouseY);
+      drawingElement.drawGuiContainerBackgroundLayer(partialTicks, x, y);
     }
-    for (GuiTextField f : textFields) {
-      f.drawTextBox();
+    for (TextFieldWidget f : textFields) {
+      f.render(matrixStack, x, y, partialTicks);
     }
     if (!scrollbars.isEmpty()) {
       for (VScrollbar vs : scrollbars) {
-        vs.drawScrollbar(mouseX, mouseY);
+        vs.drawScrollbar(x, y);
       }
     }
     if (!ghostSlotHandler.getGhostSlots().isEmpty()) {
-      getGhostSlotHandler().drawGhostSlots(this, mouseX, mouseY);
+      getGhostSlotHandler().drawGhostSlots(this, matrixStack, x, y);
     }
   }
 
   @Override
-  public void drawScreen(int par1, int par2, float par3) {
-    int mx = realMx = par1;
-    int my = realMy = par2;
-
-    this.drawDefaultBackground();
-    super.drawScreen(mx, my, par3);
+  public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    realMx = mouseX;
+    realMy = mouseY;
+    this.renderBackground(matrixStack);
+    super.render(matrixStack, mouseX, mouseY, partialTicks);
 
     // try to only draw one tooltip...
     if (draggingScrollbar == null) {
-      if (!renderHoveredToolTip2(mx, my)) {
-        if (!ghostSlotHandler.drawGhostSlotToolTip(this, par1, par2)) {
-          ttMan.drawTooltips(this, par1, par2);
+      if (!renderHoveredToolTip2(matrixStack, mouseX, mouseY)) {
+        if (!ghostSlotHandler.drawGhostSlotToolTip(this, matrixStack, mouseX, mouseY)) {
+          ttMan.drawTooltips(this, mouseX, mouseY);
         }
       }
     }
   }
 
   /**
-   * See {@link #renderHoveredToolTip(int, int)} but with a feedback return value
+   * See {@link #renderHoveredTooltip(MatrixStack, int, int)} but with a feedback return value
    */
-  protected boolean renderHoveredToolTip2(int p_191948_1_, int p_191948_2_) {
-    if (mc.player.inventory.getItemStack().isEmpty()) {
+  protected boolean renderHoveredToolTip2(MatrixStack matrixStack, int x, int y) {
+    if (minecraft.player.inventory.getItemStack().isEmpty()) {
       final Slot slotUnderMouse = getSlotUnderMouse();
       if (slotUnderMouse != null && slotUnderMouse.getHasStack()) {
-        renderToolTip(slotUnderMouse.getStack(), p_191948_1_, p_191948_2_);
+        this.renderTooltip(matrixStack, this.hoveredSlot.getStack(), x, y);
         return true;
       }
     }
     return false;
   }
 
-  // copied from super with hate
-  protected void drawItemStack(@Nonnull ItemStack stack, int mouseX, int mouseY, String str) {
-    if (stack.isEmpty()) {
-      return;
-    }
-
-    GlStateManager.translate(0.0F, 0.0F, 32.0F);
-    zLevel = 200.0F;
-    itemRender.zLevel = 200.0F;
-    FontRenderer font = null;
-    font = stack.getItem().getFontRenderer(stack);
-    if (font == null) {
-      font = fontRenderer;
-    }
-    itemRender.renderItemIntoGUI(stack, mouseX, mouseY);
-    itemRender.renderItemOverlayIntoGUI(font, stack, mouseX, mouseY, str);
-    zLevel = 0.0F;
-    itemRender.zLevel = 0.0F;
+  // TODO: Should we use an access transformer instead?
+  public void renderToolTip2(MatrixStack matrixStack, ItemStack stack, int x, int y) {
+    this.renderTooltip(matrixStack, stack, x, y);
   }
 
-  protected void drawFakeItemsStart() {
-    zLevel = 100.0F;
-    itemRender.zLevel = 100.0F;
+  // copied from super with hate
+//  protected void drawItemStack(@Nonnull ItemStack stack, int mouseX, int mouseY, String str) {
+//    if (stack.isEmpty()) {
+//      return;
+//    }
+//
+//    RenderSystem.translate(0.0F, 0.0F, 32.0F);
+//    zLevel = 200.0F;
+//    itemRenderer.zLevel = 200.0F;
+//    FontRenderer font = null;
+//    font = stack.getItem().getFontRenderer(stack);
+//    if (font == null) {
+//      font = font;
+//    }
+//    itemRenderer.renderItemIntoGUI(stack, mouseX, mouseY);
+//    itemRenderer.renderItemOverlayIntoGUI(font, stack, mouseX, mouseY, str);
+//    zLevel = 0.0F;
+//    itemRenderer.zLevel = 0.0F;
+//  }
 
-    GlStateManager.enableLighting();
-    GlStateManager.enableRescaleNormal();
-    GlStateManager.enableDepth();
-    RenderHelper.enableGUIStandardItemLighting();
+  protected void drawFakeItemsStart() {
+//    zLevel = 100.0F;
+    itemRenderer.zLevel = 100.0F;
+
+    RenderSystem.enableLighting();
+    RenderSystem.enableRescaleNormal();
+    RenderSystem.enableDepthTest();
+    RenderHelper.enableStandardItemLighting();
   }
 
   public void drawFakeItemStack(int x, int y, @Nonnull ItemStack stack) {
-    itemRender.renderItemAndEffectIntoGUI(stack, x, y);
-    GlStateManager.enableAlpha();
+    itemRenderer.renderItemAndEffectIntoGUI(stack, x, y);
+    RenderSystem.enableAlphaTest();
   }
 
   public void drawFakeItemStackStdOverlay(int x, int y, @Nonnull ItemStack stack) {
-    itemRender.renderItemOverlayIntoGUI(fontRenderer, stack, x, y, null);
+    itemRenderer.renderItemOverlayIntoGUI(font, stack, x, y, null);
   }
 
-  protected void drawFakeItemHover(int x, int y) {
-    GlStateManager.disableLighting();
-    GlStateManager.disableDepth();
-    GlStateManager.colorMask(true, true, true, false);
-    drawGradientRect(x, y, x + 16, y + 16, 0x80FFFFFF, 0x80FFFFFF);
-    GlStateManager.colorMask(true, true, true, true);
-    GlStateManager.enableDepth();
+  protected void drawFakeItemHover(MatrixStack matrixStack, int x, int y) {
+    RenderSystem.disableLighting();
+    RenderSystem.disableDepthTest();
+    RenderSystem.colorMask(true, true, true, false);
+    blit(matrixStack, x, y, x + 16, y + 16, 0x80FFFFFF, 0x80FFFFFF);
+    RenderSystem.colorMask(true, true, true, true);
+    RenderSystem.enableDepthTest();
 
-    GlStateManager.enableLighting();
+    RenderSystem.enableLighting();
   }
 
   protected void drawFakeItemsEnd() {
-    itemRender.zLevel = 0.0F;
-    zLevel = 0.0F;
-  }
-
-  @Override
-  public void renderToolTip(@Nonnull ItemStack p_146285_1_, int p_146285_2_, int p_146285_3_) {
-    super.renderToolTip(p_146285_1_, p_146285_2_, p_146285_3_);
+    itemRenderer.zLevel = 0.0F;
+//    zLevel = 0.0F;
   }
 
   /**
@@ -450,17 +495,8 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
     return ttMan.removeToolTip(toolTip);
   }
 
-  protected void drawForegroundImpl(int mouseX, int mouseY) {
-    super.drawGuiContainerForegroundLayer(mouseX, mouseY);
-  }
-
-  @Override
-  public void drawHoveringToolTipText(@Nonnull List<String> par1List, int par2, int par3, @Nonnull FontRenderer font) {
-    super.drawHoveringText(par1List, par2, par3, font);
-  }
-
-  public float getZlevel() {
-    return zLevel;
+  protected void drawForegroundImpl(MatrixStack matrixStack, int mouseX, int mouseY) {
+    super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
   }
 
   @Override
@@ -501,20 +537,19 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
 
   @Override
   public @Nonnull FontRenderer getFontRenderer() {
-    return Minecraft.getMinecraft().fontRenderer;
+    return Minecraft.getInstance().fontRenderer;
   }
 
   @Override
-  public @Nonnull <T extends GuiButton> T addButton(@Nonnull T button) {
-    if (!buttonList.contains(button)) {
-      buttonList.add(button);
+  public @Nonnull <T extends Widget> T addButton(@Nonnull T button) {
+    if (!buttons.contains(button)) {
+      buttons.add(button);
     }
     return button;
   }
 
-  @Override
-  public void removeButton(@Nonnull GuiButton button) {
-    buttonList.remove(button);
+  public void removeButton(@Nonnull Button button) {
+    buttons.remove(button);
   }
 
   @Override
@@ -528,19 +563,14 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
   }
 
   @Override
-  public void doActionPerformed(@Nonnull GuiButton guiButton) throws IOException {
-    actionPerformed(guiButton);
-  }
-
-  @Override
   public void clearToolTips() {
   }
 
   @Override
-  public void onGuiClosed() {
-    super.onGuiClosed();
+  public void onClose() {
+    super.onClose();
     for (IGuiOverlay overlay : overlays) {
-      overlay.guiClosed();
+      overlay.onClose();
     }
   }
 
@@ -566,7 +596,7 @@ public abstract class GuiContainerBase extends GuiContainer implements ToolTipRe
 
   @Override
   @Nonnull
-  public final <T extends GuiButton> T addGuiButton(@Nonnull T button) {
+  public final <T extends Button> T addGuiButton(@Nonnull T button) {
     return addButton(button);
   }
 

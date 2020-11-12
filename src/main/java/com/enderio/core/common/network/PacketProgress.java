@@ -2,16 +2,15 @@ package com.enderio.core.common.network;
 
 import javax.annotation.Nonnull;
 
-import com.enderio.core.EnderCore;
 import com.enderio.core.api.common.util.IProgressTile;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.network.NetworkEvent;
 
-public class PacketProgress extends MessageTileEntity<TileEntity> {
+import java.util.function.Supplier;
+
+public class PacketProgress extends PacketTileEntity<TileEntity> {
 
   float progress;
 
@@ -24,26 +23,20 @@ public class PacketProgress extends MessageTileEntity<TileEntity> {
   }
 
   @Override
-  public void toBytes(ByteBuf buf) {
-    super.toBytes(buf);
-    buf.writeFloat(progress);
+  public void write(PacketBuffer buffer) {
+    buffer.writeFloat(progress);
   }
 
   @Override
-  public void fromBytes(ByteBuf buf) {
-    super.fromBytes(buf);
-    progress = buf.readFloat();
+  public void read(PacketBuffer buffer) {
+    progress = buffer.readFloat();
   }
 
-  public static class Handler implements IMessageHandler<PacketProgress, IMessage> {
-
-    @Override
-    public IMessage onMessage(PacketProgress message, MessageContext ctx) {
-      TileEntity tile = message.getTileEntity(EnderCore.proxy.getClientWorld());
-      if (tile instanceof IProgressTile) {
-        ((IProgressTile) tile).setProgress(message.progress);
-      }
-      return null;
+  @Override
+  public boolean onReceived(@Nonnull TileEntity te, @Nonnull Supplier<NetworkEvent.Context> context) {
+    if (te instanceof IProgressTile) {
+      ((IProgressTile) te).setProgress(progress);
     }
+    return true;
   }
 }

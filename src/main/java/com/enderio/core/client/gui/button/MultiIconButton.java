@@ -22,7 +22,7 @@ public class MultiIconButton extends IconButton {
   }
 
   @Override
-  protected @Nonnull IWidgetIcon getIconForHoverState(int hoverState) {
+  protected @Nonnull IWidgetIcon getIconForState(int hoverState) {
     if (hoverState == 0) {
       return pressed;
     }

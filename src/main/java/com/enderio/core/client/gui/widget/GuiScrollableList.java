@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.lwjgl.input.Mouse;
+import net.minecraft.client.gui.widget.button.Button;
 import org.lwjgl.opengl.GL11;
 
 import com.enderio.core.api.client.gui.IGuiScreen;
@@ -16,16 +16,13 @@ import com.enderio.core.common.vecmath.Vector3f;
 import com.enderio.core.common.vecmath.Vector4f;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 
 public abstract class GuiScrollableList<T> {
 
-  private final @Nonnull Minecraft mc = Minecraft.getMinecraft();
+  private final @Nonnull Minecraft mc = Minecraft.getInstance();
 
   protected int originX;
   protected int originY;
@@ -156,7 +153,7 @@ public abstract class GuiScrollableList<T> {
     return getContentHeight() - (height - margin);
   }
 
-  public void actionPerformed(@Nonnull GuiButton b) {
+  public void actionPerformed(@Nonnull Button b) {
     if (b.enabled) {
       if (b.id == scrollUpButtonID) {
         amountScrolled -= slotHeight * 2 / 3;

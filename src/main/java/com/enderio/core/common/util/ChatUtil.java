@@ -8,11 +8,17 @@ import com.enderio.core.common.network.EnderPacketHandler;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.NewChatGui;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.IPacket;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 public class ChatUtil {
 
-  public static class PacketNoSpamChat implements IMessage {
+  public static class PacketNoSpamChat {
 
     ITextComponent[] chatLines;
 
@@ -62,7 +68,7 @@ public class ChatUtil {
   private static int lastAdded;
 
   static void sendNoSpamMessages(ITextComponent[] messages) {
-    GuiNewChat chat = Minecraft.getMinecraft().ingameGUI.getChatGUI();
+    NewChatGui chat = Minecraft.getInstance().ingameGUI.getChatGUI();
     for (int i = DELETION_ID + messages.length - 1; i <= lastAdded; i++) {
       chat.deleteChatLine(i);
     }
@@ -83,7 +89,7 @@ public class ChatUtil {
    * @return An {@link ITextComponent} containing the string.
    */
   public static @Nonnull ITextComponent wrap(@Nullable String s) {
-    return s == null ? new TextComponentString("") : new TextComponentString(s);
+    return s == null ? new StringTextComponent("") : new StringTextComponent(s);
   }
 
   /**
@@ -106,7 +112,7 @@ public class ChatUtil {
    *          The args to apply to the format
    */
   public static @Nonnull ITextComponent wrapFormatted(@Nonnull String s, @Nonnull Object... args) {
-    return new TextComponentTranslation(s, args);
+    return new TranslationTextComponent(s, args);
   }
 
   /**
@@ -117,16 +123,16 @@ public class ChatUtil {
    * @param lines
    *          The lines to send
    */
-  public static void sendChat(@Nonnull EntityPlayer player, @Nonnull String... lines) {
+  public static void sendChat(@Nonnull PlayerEntity player, @Nonnull String... lines) {
     sendChat(player, wrap(lines));
   }
 
   /**
    * Localizes the lines before sending them.
    *
-   * @see #sendChat(EntityPlayer, String...)
+   * @see #sendChat(PlayerEntity, String...)
    */
-  public static void sendChatUnloc(@Nonnull EntityPlayer player, @Nonnull Lang lang, @Nonnull String... unlocLines) {
+  public static void sendChatUnloc(@Nonnull PlayerEntity player, @Nonnull Lang lang, @Nonnull String... unlocLines) {
     sendChat(player, lang.localizeAll(lang, unlocLines));
   }
 
@@ -138,7 +144,7 @@ public class ChatUtil {
    * @param lines
    *          The {@link ITextComponent chat components} to send.
    */
-  public static void sendChat(@Nonnull EntityPlayer player, @Nonnull ITextComponent... lines) {
+  public static void sendChat(@Nonnull PlayerEntity player, @Nonnull ITextComponent... lines) {
     for (ITextComponent c : lines) {
       if (c != null) {
         player.sendMessage(c);
@@ -169,7 +175,7 @@ public class ChatUtil {
   /**
    * Skips the packet sending, unsafe to call on servers.
    *
-   * @see #sendNoSpam(EntityPlayerMP, ITextComponent...)
+   * @see #sendNoSpam(ServerPlayerEntity, ITextComponent...)
    */
   public static void sendNoSpamClient(@Nonnull ITextComponent... lines) {
     sendNoSpamMessages(lines);
@@ -178,45 +184,45 @@ public class ChatUtil {
   /**
    * Localizes the strings before sending them.
    *
-   * @see #sendNoSpam(EntityPlayer, String...)
+   * @see #sendNoSpam(ServerPlayerEntity, String...)
    */
-  public static void sendNoSpamUnloc(@Nonnull EntityPlayer player, @Nonnull Lang lang, @Nonnull String... unlocLines) {
+  public static void sendNoSpamUnloc(@Nonnull ServerPlayerEntity player, @Nonnull Lang lang, @Nonnull String... unlocLines) {
     sendNoSpam(player, lang.localizeAll(lang, unlocLines));
   }
 
   /**
    * @see #wrap(String)
-   * @see #sendNoSpam(EntityPlayer, ITextComponent...)
+   * @see #sendNoSpam(ServerPlayerEntity, ITextComponent...)
    */
-  public static void sendNoSpam(@Nonnull EntityPlayer player, @Nonnull String... lines) {
+  public static void sendNoSpam(@Nonnull ServerPlayerEntity player, @Nonnull String... lines) {
     sendNoSpam(player, wrap(lines));
   }
 
   /**
-   * First checks if the player is instanceof {@link EntityPlayerMP} before casting.
+   * First checks if the player is instanceof {@link ServerPlayerEntity} before casting.
    *
-   * @see #sendNoSpam(EntityPlayerMP, ITextComponent...)
+   * @see #sendNoSpam(ServerPlayerEntity, ITextComponent...)
    */
-  public static void sendNoSpam(@Nonnull EntityPlayer player, @Nonnull ITextComponent... lines) {
-    if (player instanceof EntityPlayerMP) {
-      sendNoSpam((EntityPlayerMP) player, lines);
+  public static void sendNoSpam(@Nonnull ServerPlayerEntity player, @Nonnull ITextComponent... lines) {
+    if (player instanceof ServerPlayerEntity) {
+      sendNoSpam((ServerPlayerEntity) player, lines);
     }
   }
 
   /**
    * Localizes the strings before sending them.
    *
-   * @see #sendNoSpam(EntityPlayerMP, String...)
+   * @see #sendNoSpam(ServerPlayerEntity, String...)
    */
-  public static void sendNoSpamUnloc(@Nonnull EntityPlayerMP player, @Nonnull Lang lang, @Nonnull String... unlocLines) {
+  public static void sendNoSpamUnloc(@Nonnull ServerPlayerEntity player, @Nonnull Lang lang, @Nonnull String... unlocLines) {
     sendNoSpam(player, lang.localizeAll(lang, unlocLines));
   }
 
   /**
    * @see #wrap(String)
-   * @see #sendNoSpam(EntityPlayerMP, ITextComponent...)
+   * @see #sendNoSpam(ServerPlayerEntity, ITextComponent...)
    */
-  public static void sendNoSpam(@Nonnull EntityPlayerMP player, @Nonnull String... lines) {
+  public static void sendNoSpam(@Nonnull ServerPlayerEntity player, @Nonnull String... lines) {
     sendNoSpam(player, wrap(lines));
   }
 
@@ -230,9 +236,9 @@ public class ChatUtil {
    * @param lines
    *          The chat lines to send.
    */
-  public static void sendNoSpam(@Nonnull EntityPlayerMP player, @Nonnull ITextComponent... lines) {
+  public static void sendNoSpam(@Nonnull ServerPlayerEntity player, @Nonnull ITextComponent... lines) {
     if (lines.length > 0) {
-      EnderPacketHandler.INSTANCE.sendTo(new PacketNoSpamChat(lines), player);
+      EnderPacketHandler.sendTo(new PacketNoSpamChat(lines), player);
     }
   }
 }
