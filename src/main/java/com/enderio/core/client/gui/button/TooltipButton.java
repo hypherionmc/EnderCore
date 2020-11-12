@@ -20,6 +20,13 @@ public class TooltipButton extends HideableButton {
   protected @Nullable String[] toolTipText;
   protected @Nullable GuiToolTip toolTip;
 
+  public TooltipButton(@Nonnull IGuiScreen gui, int x, int y, int widthIn, int heightIn, @Nonnull ITextComponent buttonText) {
+    super(x, y, widthIn, heightIn, buttonText);
+    this.gui = gui;
+    this.xOrigin = x;
+    this.yOrigin = y;
+  }
+
   public TooltipButton(@Nonnull IGuiScreen gui, int x, int y, int widthIn, int heightIn, @Nonnull ITextComponent buttonText, IPressable pressedAction) {
     super(x, y, widthIn, heightIn, buttonText, pressedAction);
     this.gui = gui;

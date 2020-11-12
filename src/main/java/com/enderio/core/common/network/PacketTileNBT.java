@@ -6,22 +6,20 @@ import javax.annotation.Nullable;
 import com.enderio.core.common.util.Log;
 import com.enderio.core.common.util.NullHelper;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 /**
  * Created by CrazyPants on 27/02/14.
  */
-public class PacketTileNBT implements IEnderPacket {
+public class PacketTileNBT {
 
   TileEntity te;
 
@@ -40,13 +38,11 @@ public class PacketTileNBT implements IEnderPacket {
     te.write(tags = new CompoundNBT());
   }
 
-  @Override
   public void toBytes(PacketBuffer buffer) {
     buffer.writeLong(pos);
     buffer.writeCompoundTag(tags);
   }
 
-  @Override
   public void fromBytes(PacketBuffer buffer) {
     pos = buffer.readLong();
     tags = buffer.readCompoundTag();
@@ -56,14 +52,15 @@ public class PacketTileNBT implements IEnderPacket {
     return BlockPos.fromLong(pos);
   }
 
-  @Override
-  public IMessage onMessage(PacketTileNBT msg, MessageContext ctx) {
-    te = handle(ctx.getServerHandler().player.world);
-    if (te != null && renderOnUpdate) {
-      IBlockState bs = te.getWorld().getBlockState(msg.getPos());
-      te.getWorld().notifyBlockUpdate(msg.getPos(), bs, bs, 3);
-    }
-    return null;
+  public boolean handle(Supplier<NetworkEvent.Context> context) {
+    context.get().enqueueWork(() -> {
+      te = handle(context.get().getSender().world);
+      if (te != null && renderOnUpdate) {
+        BlockState bs = te.getWorld().getBlockState(getPos());
+        te.getWorld().notifyBlockUpdate(getPos(), bs, bs, 3);
+      }
+    });
+    return true;
   }
 
   private @Nullable TileEntity handle(World world) {
@@ -76,7 +73,7 @@ public class PacketTileNBT implements IEnderPacket {
       Log.warn("PacketUtil.handleTileEntityPacket: TileEntity null when processing tile entity packet.");
       return null;
     }
-    tileEntity.readFromNBT(NullHelper.notnull(tags, "NetworkUtil.readNBTTagCompound()"));
+    tileEntity.read(tileEntity.getBlockState(), NullHelper.notnull(tags, "NetworkUtil.readNBTTagCompound()"));
     return tileEntity;
   }
 }

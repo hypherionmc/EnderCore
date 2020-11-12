@@ -1,28 +1,42 @@
 package com.enderio.core.common.network;
 
-import com.enderio.core.common.config.PacketConfigSync;
-import com.enderio.core.common.util.ChatUtil.PacketNoSpamChat;
-
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
-public class EnderPacketHandler {
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
+public class EnderPacketHandler {
   private static SimpleChannel INSTANCE;
+  private static int ID = 0;
 
   public static void init() {
-    INSTANCE.registerMessage(PacketConfigSync.Handler.class, PacketConfigSync.class, 0, Side.CLIENT);
-    INSTANCE.registerMessage(PacketProgress.Handler.class, PacketProgress.class, 1, Side.CLIENT);
-    INSTANCE.registerMessage(PacketNoSpamChat.Handler.class, PacketNoSpamChat.class, 2, Side.CLIENT);
-    INSTANCE.registerMessage(PacketGhostSlot.Handler.class, PacketGhostSlot.class, 3, Side.SERVER);
+    // TODO: CONFIG PACKET.
+    // INSTANCE.registerMessage(PacketConfigSync.Handler.class, PacketConfigSync.class, 0, Side.CLIENT);
+    registerClientMessage(PacketProgress.class, PacketProgress::toBytes, PacketProgress::new, PacketProgress::handle);
+    registerServerMessage(PacketGhostSlot.class, PacketGhostSlot::toBytes, PacketGhostSlot::new, PacketGhostSlot::handle);
+  }
+
+  protected static <T> void registerClientMessage(Class<T> type, BiConsumer<T, PacketBuffer> encoder, Function<PacketBuffer, T> decoder,
+                                                                       BiConsumer<T, Supplier<NetworkEvent.Context>> consumer) {
+    INSTANCE.registerMessage(ID++, type, encoder, decoder, consumer, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+  }
+
+  protected static <T> void registerServerMessage(Class<T> type, BiConsumer<T, PacketBuffer> encoder, Function<PacketBuffer, T> decoder,
+                                                  BiConsumer<T, Supplier<NetworkEvent.Context>> consumer) {
+    INSTANCE.registerMessage(ID++, type, encoder, decoder, consumer, Optional.of(NetworkDirection.PLAY_TO_SERVER));
   }
 
   public static void sendToAllTracking(IPacket<?> message, TileEntity te) {
@@ -38,11 +52,11 @@ public class EnderPacketHandler {
     }
   }
 
-  public static void sendTo(IEnderPacket packet, ServerPlayerEntity player) {
+  public static <T> void sendTo(T packet, ServerPlayerEntity player) {
     INSTANCE.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
   }
 
-  public static void sendToServer(IEnderPacket packet) {
+  public static <T> void sendToServer(T packet) {
     INSTANCE.sendToServer(packet);
   }
 }

@@ -15,7 +15,6 @@ import com.enderio.core.common.vecmath.Vertex;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 public final class BoundingBox extends AxisAlignedBB {
 
@@ -325,8 +324,9 @@ public final class BoundingBox extends AxisAlignedBB {
   }
 
   @Override
-  public @Nonnull Vec3d getCenter() {
-    return new Vec3d(this.minX + (this.maxX - this.minX) * 0.5D, this.minY + (this.maxY - this.minY) * 0.5D, this.minZ + (this.maxZ - this.minZ) * 0.5D);
+  public @Nonnull
+  net.minecraft.util.math.vector.Vector3d getCenter() {
+    return new net.minecraft.util.math.vector.Vector3d(this.minX + (this.maxX - this.minX) * 0.5D, this.minY + (this.maxY - this.minY) * 0.5D, this.minZ + (this.maxZ - this.minZ) * 0.5D);
   }
 
 }

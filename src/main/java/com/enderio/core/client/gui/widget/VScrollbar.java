@@ -164,28 +164,28 @@ public class VScrollbar implements IHideable {
     return isDragActive();
   }
 
-  public boolean mouseClickMove(int mX, int mY, int button, long time) {
+  public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
     if (pressedThumb) {
-      int pos = mY - (thumbArea.y + EnderWidget.VSCROLL_THUMB_OFF.height / 2);
+      double pos = mouseY - (thumbArea.y + EnderWidget.VSCROLL_THUMB_OFF.height / 2);
       int len = thumbArea.height - EnderWidget.VSCROLL_THUMB_OFF.height;
       if (len > 0) {
-        setScrollPos(Math.round(pos * (float) getScrollMax() / len));
+        setScrollPos((int) Math.round(pos * (float) getScrollMax() / len));
       }
       return true;
     }
     return false;
   }
 
-  public void mouseMovedOrUp(int mX, int mY, int button) {
+  public void mouseReleased(double mX, double mY, int button) {
     pressedUp = false;
     pressedDown = false;
     pressedThumb = false;
     scrollDir = 0;
   }
 
-  public void mouseWheel(int mX, int mY, int delta) {
+  public void mouseScrolled(double mX, double mY, double delta) {
     if (!isDragActive()) {
-      scrollBy(-Integer.signum(delta));
+      scrollBy(-Integer.signum((int) Math.round(delta))); // TODO: Ugly, maybe just write a sign func?
     }
   }
 

@@ -6,8 +6,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.enderio.core.EnderCore;
-import com.enderio.core.common.Handlers.Handler;
-import com.enderio.core.common.Handlers.Handler.Inst;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;

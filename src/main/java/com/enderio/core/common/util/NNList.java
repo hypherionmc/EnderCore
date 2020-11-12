@@ -152,7 +152,7 @@ public class NNList<E> extends NonNullList<E> {
     void apply(@Nonnull E e);
   }
 
-  public boolean apply(@Nonnull ShortCallback<E> callback) {
+  public boolean applyShort(@Nonnull ShortCallback<E> callback) {
     for (E e : delegate) {
       if (e == null) {
         throw new NullPointerException();

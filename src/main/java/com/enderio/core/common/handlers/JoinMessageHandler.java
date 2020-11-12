@@ -1,14 +1,16 @@
 package com.enderio.core.common.handlers;
 
 import com.enderio.core.EnderCore;
-import com.enderio.core.common.Handlers.Handler;
 import com.enderio.core.common.config.ConfigHandler;
 
+import net.minecraft.util.Util;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-@Handler
+import net.minecraftforge.fml.common.Mod;
+
+@Mod.EventBusSubscriber
 public class JoinMessageHandler {
 
   @SubscribeEvent
@@ -24,12 +26,12 @@ public class JoinMessageHandler {
       String text3 = EnderCore.lang.localize(warnBase + "3");
       String text4 = EnderCore.lang.localize(warnBase + "4");
 
-      event.getPlayer().sendMessage(new StringTextComponent(text1));
-      event.getPlayer().sendMessage(new StringTextComponent(text2));
+      event.getPlayer().sendMessage(new StringTextComponent(text1), Util.DUMMY_UUID);
+      event.getPlayer().sendMessage(new StringTextComponent(text2), Util.DUMMY_UUID);
       if(EnderCore.instance.invisibilityRequested()) {
-        event.getPlayer().sendMessage(new StringTextComponent(text3));
+        event.getPlayer().sendMessage(new StringTextComponent(text3), Util.DUMMY_UUID);
       }
-      event.getPlayer().sendMessage(new StringTextComponent(text4));
+      event.getPlayer().sendMessage(new StringTextComponent(text4), Util.DUMMY_UUID);
     }
   }
 }

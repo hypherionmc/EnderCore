@@ -5,7 +5,6 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import com.enderio.core.common.Handlers.Handler;
 import com.enderio.core.common.enchant.EnchantXPBoost;
 import com.enderio.core.common.util.NullHelper;
 import com.enderio.core.common.util.Scheduler;
@@ -23,16 +22,16 @@ import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
-@Handler
+@Mod.EventBusSubscriber
 public class XPBoostHandler {
 
   private static final Method getExperiencePoints = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "getExperiencePoints", PlayerEntity.class);

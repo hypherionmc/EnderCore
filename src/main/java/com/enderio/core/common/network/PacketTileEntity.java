@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-public abstract class PacketTileEntity<T extends TileEntity> implements IEnderPacket {
+public abstract class PacketTileEntity<T extends TileEntity> {
 
   private long pos;
 
@@ -30,22 +30,8 @@ public abstract class PacketTileEntity<T extends TileEntity> implements IEnderPa
     pos = buffer.readLong();
   }
 
-  @Override
-  public final void toBytes(PacketBuffer buffer) {
+  public void toBytes(PacketBuffer buffer) {
     buffer.writeLong(pos);
-    write(buffer);
-  }
-
-  public void write(PacketBuffer buffer) {
-  }
-
-  @Override
-  public final void fromBytes(PacketBuffer buffer) {
-    pos = buffer.readLong();
-    read(buffer);
-  }
-
-  public void read(PacketBuffer buffer) {
   }
 
   public @Nonnull BlockPos getPos() {
@@ -80,19 +66,19 @@ public abstract class PacketTileEntity<T extends TileEntity> implements IEnderPa
     return null;
   }
 
-  @Override
   public boolean handle(Supplier<NetworkEvent.Context> context) {
-    if (context.get() != null) {
-      T te = getTileEntity(getWorld(context));
-      if (te != null) {
-        return onReceived(te, context);
+    context.get().enqueueWork(() -> {
+      if (context.get() != null) {
+        T te = getTileEntity(getWorld(context));
+        if (te != null) {
+          onReceived(te, context);
+        }
       }
-    }
+    });
     return true;
   }
 
-  public boolean onReceived(@Nonnull T te, @Nonnull Supplier<NetworkEvent.Context> context) {
-    return true;
+  public void onReceived(@Nonnull T te, @Nonnull Supplier<NetworkEvent.Context> context) {
   }
 
   protected @Nonnull World getWorld(Supplier<NetworkEvent.Context> context) {

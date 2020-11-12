@@ -1,7 +1,10 @@
 package com.enderio.core.client.gui.button;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.ITextComponent;
+
+import javax.annotation.Nonnull;
 
 public class BaseButton extends Button {
     private static final IPressable DUD_PRESSABLE = new IPressable() {
@@ -44,5 +47,27 @@ public class BaseButton extends Button {
     public void onPress() {
         if (isActive())
             super.onPress();
+    }
+
+    @Override
+    protected boolean clicked(double mouseX, double mouseY) {
+        return isActive() && super.clicked(mouseX, mouseY);
+    }
+
+    /**
+     * Override this to handle mouse clicks with other buttons than the left
+     *
+     * @param mc
+     *          The MC instance
+     * @param mouseX
+     *          X coordinate of mouse click
+     * @param mouseY
+     *          Y coordinate of mouse click
+     * @param button
+     *          the mouse button - only called for button {@literal >}= 1
+     * @return true if the mouse click is handled
+     */
+    public boolean buttonPressed(double mouseX, double mouseY, int button) {
+        return false;
     }
 }

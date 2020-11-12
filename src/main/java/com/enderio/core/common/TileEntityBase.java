@@ -3,7 +3,6 @@ package com.enderio.core.common;
 import javax.annotation.Nonnull;
 
 import com.enderio.core.api.common.util.IProgressTile;
-import com.enderio.core.common.config.ConfigHandler;
 import com.enderio.core.common.network.EnderPacketHandler;
 import com.enderio.core.common.network.PacketProgress;
 import com.enderio.core.common.util.NullHelper;
@@ -18,7 +17,9 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.server.ServerWorld;
 
 public abstract class TileEntityBase extends TileEntity implements ITickableTileEntity {
@@ -30,16 +31,16 @@ public abstract class TileEntityBase extends TileEntity implements ITickableTile
   protected long lastProgressUpdate;
   private long lastUpdate = 0;
 
-  public TileEntityBase() {
-    super();
+  public TileEntityBase(TileEntityType<?> tileEntityTypeIn) {
+    super(tileEntityTypeIn);
     isProgressTile = this instanceof IProgressTile;
   }
 
   @Override
-  public final void update() {
+  public void tick() {
     // Note: Commented out checks are done in World for 1.12
     if (/* !hasWorld() || isInvalid() || !world.isBlockLoaded(getPos()) || */ world.getTileEntity(getPos()) != this
-        || world.getBlockState(pos).getBlock() != getBlockState().getBlock()) {
+            || world.getBlockState(pos).getBlock() != getBlockState().getBlock()) {
       // we can get ticked after being removed from the world, ignore this
       return;
     }
@@ -65,7 +66,7 @@ public abstract class TileEntityBase extends TileEntity implements ITickableTile
               || (lastUpdate - lastProgressUpdate) > 60 * 20; // also update every 60 seconds to avoid stale client status
 
       if (send) {
-        EnderPacketHandler.INSTANCE.sendToAllAround(((IProgressTile) this).getProgressPacket(), this);
+        EnderPacketHandler.sendToAllTracking(((IProgressTile) this).getProgressPacket(), this);
         lastProgressSent = progress;
         lastProgressUpdate = lastUpdate;
       }
@@ -76,7 +77,7 @@ public abstract class TileEntityBase extends TileEntity implements ITickableTile
 
   }
 
-  public @Nonnull IPacket getProgressPacket() {
+  public @Nonnull PacketProgress getProgressPacket() {
     return new PacketProgress((IProgressTile) this);
   }
 
@@ -249,7 +250,6 @@ public abstract class TileEntityBase extends TileEntity implements ITickableTile
     }
 
     ServerWorld serverWorld = (ServerWorld) world;
-    PlayerChunkMap playerManager = serverWorld.getPlayerChunkMap();
     SUpdateTileEntityPacket updatePacket = null;
 
     int chunkX = pos.getX() >> 4;
@@ -258,8 +258,7 @@ public abstract class TileEntityBase extends TileEntity implements ITickableTile
     for (PlayerEntity playerObj : world.getPlayers()) {
       if (playerObj instanceof ServerPlayerEntity) {
         ServerPlayerEntity player = (ServerPlayerEntity) playerObj;
-
-        if (playerManager.isPlayerWatchingChunk(player, chunkX, chunkZ)) {
+        if (serverWorld.getChunkProvider().chunkManager.getTrackingPlayers(new ChunkPos(chunkX, chunkZ), false).anyMatch(plr -> plr.equals(playerObj))) {
           if (updatePacket == null) {
             updatePacket = getUpdatePacket();
             if (updatePacket == null) {

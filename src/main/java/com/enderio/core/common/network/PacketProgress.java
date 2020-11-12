@@ -22,21 +22,21 @@ public class PacketProgress extends PacketTileEntity<TileEntity> {
     progress = tile.getProgress();
   }
 
-  @Override
-  public void write(PacketBuffer buffer) {
-    buffer.writeFloat(progress);
-  }
-
-  @Override
-  public void read(PacketBuffer buffer) {
+  public PacketProgress(PacketBuffer buffer) {
+    super(buffer);
     progress = buffer.readFloat();
   }
 
   @Override
-  public boolean onReceived(@Nonnull TileEntity te, @Nonnull Supplier<NetworkEvent.Context> context) {
+  public void toBytes(PacketBuffer buffer) {
+    super.toBytes(buffer);
+    buffer.writeFloat(progress);
+  }
+
+  @Override
+  public void onReceived(@Nonnull TileEntity te, @Nonnull Supplier<NetworkEvent.Context> context) {
     if (te instanceof IProgressTile) {
       ((IProgressTile) te).setProgress(progress);
     }
-    return true;
   }
 }

@@ -1,11 +1,11 @@
 package com.enderio.core.client.gui;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.enderio.core.client.gui.button.BaseButton;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.java.games.input.Mouse;
@@ -158,22 +158,22 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
     }
   }
 
-  @Override
-  public void handleMouseInput() throws IOException {
-    int x = Mouse.getEventX() * this.width / this.mc.displayWidth;
-    int y = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
-    int b = Mouse.getEventButton();
-    for (IGuiOverlay overlay : overlays) {
-      if (overlay != null && overlay.isVisible() && overlay.handleMouseInput(x, y, b)) {
-        return;
-      }
-    }
-    int delta = Mouse.getEventDWheel();
-    if (delta != 0) {
-      mouseWheel(x, y, delta);
-    }
-    super.handleMouseInput();
-  }
+//  @Override
+//  public void handleMouseInput() throws IOException {
+//    int x = Mouse.getEventX() * this.width / this.mc.displayWidth;
+//    int y = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+//    int b = Mouse.getEventButton();
+//    for (IGuiOverlay overlay : overlays) {
+//      if (overlay != null && overlay.isVisible() && overlay.handleMouseInput(x, y, b)) {
+//        return;
+//      }
+//    }
+//    int delta = Mouse.getEventDWheel();
+//    if (delta != 0) {
+//      mouseWheel(x, y, delta);
+//    }
+//    super.handleMouseInput();
+//  }
 
   @Override
   protected boolean isPointInRegion(int x, int y, int width, int height, double mouseX, double mouseY) {
@@ -200,12 +200,12 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
     if (!scrollbars.isEmpty()) {
       if (draggingScrollbar != null) {
         draggingScrollbar.mouseClicked(mouseX, mouseY, button);
-        return;
+        return true;
       }
       for (VScrollbar vs : scrollbars) {
         if (vs.mouseClicked(mouseX, mouseY, button)) {
           draggingScrollbar = vs;
-          return;
+          return true;
         }
       }
     }
@@ -213,7 +213,7 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
       GhostSlot slot = getGhostSlotHandler().getGhostSlotAt(this, mouseX, mouseY);
       if (slot != null) {
         getGhostSlotHandler().ghostSlotClicked(this, slot, mouseX, mouseY, button);
-        return;
+        return true;
       }
     }
     // Right click field clearing
@@ -227,95 +227,53 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
     // Button events for non-left-clicks
     if (button >= 1) {
       for (Object obj : buttons) {
-        if (obj instanceof IconButton) {
-          IconButton btn = (IconButton) obj;
-          if (btn.mousePressedButton(mc, x, y, button)) {
-            btn.playPressSound(this.mc.getSoundHandler());
-            actionPerformedButton(btn, button);
+        // TODO: Replace with new buttons system...
+        if (obj instanceof BaseButton) {
+          BaseButton btn = (BaseButton) obj;
+          if (btn.buttonPressed(mouseX, mouseY, button)) {
+//            btn.playPressSound(this.mc.getSoundHandler());
+            // TODO: What is this actionPerformed thing
+//            actionPerformedButton(btn, button);
+            return true;
           }
         }
       }
     }
-    super.mouseClicked(mouseX, mouseY, button);
+    return super.mouseClicked(mouseX, mouseY, button);
   }
 
   @Override
-  protected void mouseClicked(int x, int y, int button) throws IOException {
-    for (GuiTextField f : textFields) {
-      f.mouseClicked(x, y, button);
-    }
-    if (!scrollbars.isEmpty()) {
-      if (draggingScrollbar != null) {
-        draggingScrollbar.mouseClicked(x, y, button);
-        return;
-      }
-      for (VScrollbar vs : scrollbars) {
-        if (vs.mouseClicked(x, y, button)) {
-          draggingScrollbar = vs;
-          return;
-        }
-      }
-    }
-    if (!getGhostSlotHandler().getGhostSlots().isEmpty()) {
-      GhostSlot slot = getGhostSlotHandler().getGhostSlotAt(this, x, y);
-      if (slot != null) {
-        getGhostSlotHandler().ghostSlotClicked(this, slot, x, y, button);
-        return;
-      }
-    }
-    // Right click field clearing
-    if (button == 1) {
-      for (TextFieldEnder tf : textFields) {
-        if (tf.contains(x, y)) {
-          setText(tf, "");
-        }
-      }
-    }
-    // Button events for non-left-clicks
-    if (button >= 1) {
-      for (Object obj : buttonList) {
-        if (obj instanceof IconButton) {
-          IconButton btn = (IconButton) obj;
-          if (btn.mousePressedButton(mc, x, y, button)) {
-            btn.playPressSound(this.mc.getSoundHandler());
-            actionPerformedButton(btn, button);
-          }
-        }
-      }
-    }
-    super.mouseClicked(x, y, button);
-  }
-
-  @Override
-  protected void mouseReleased(int x, int y, int button) {
+  public boolean mouseReleased(double mouseX, double mouseY, int button) {
     if (draggingScrollbar != null) {
-      draggingScrollbar.mouseMovedOrUp(x, y, button);
+      draggingScrollbar.mouseReleased(mouseX, mouseY, button);
       draggingScrollbar = null;
     }
-    super.mouseReleased(x, y, button);
+    return super.mouseReleased(mouseX, mouseY, button);
   }
 
   @Override
-  protected void mouseClickMove(int x, int y, int button, long time) {
+  public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
     if (draggingScrollbar != null) {
-      draggingScrollbar.mouseClickMove(x, y, button, time);
-      return;
+      return draggingScrollbar.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
-    super.mouseClickMove(x, y, button, time);
+    return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
   }
 
-  protected void mouseWheel(int x, int y, int delta) {
+  @Override
+  public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
     if (!scrollbars.isEmpty()) {
       for (VScrollbar vs : scrollbars) {
-        vs.mouseWheel(x, y, delta);
+        vs.mouseScrolled(mouseX, mouseY, delta);
       }
     }
     if (!getGhostSlotHandler().getGhostSlots().isEmpty()) {
-      GhostSlot slot = getGhostSlotHandler().getGhostSlotAt(this, x, y);
+      GhostSlot slot = getGhostSlotHandler().getGhostSlotAt(this, mouseX, mouseY);
       if (slot != null) {
-        getGhostSlotHandler().ghostSlotClicked(this, slot, x, y, delta < 0 ? -1 : -2);
+        getGhostSlotHandler().ghostSlotClicked(this, slot, mouseX, mouseY, delta < 0 ? -1 : -2);
       }
     }
+
+    return super.mouseScrolled(mouseX, mouseY, delta);
   }
 
   public void addOverlay(@Nonnull IGuiOverlay overlay) {
@@ -560,6 +518,11 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
   @Override
   public int getOverlayOffsetXRight() {
     return 0;
+  }
+
+  @Override
+  public void doActionPerformed(@Nonnull Button button) throws IOException {
+
   }
 
   @Override

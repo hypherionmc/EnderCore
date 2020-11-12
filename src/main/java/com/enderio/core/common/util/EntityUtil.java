@@ -12,8 +12,9 @@ import com.enderio.core.common.vecmath.Vector3d;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.FireworkRocketEntity;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.projectile.FireworkRocketEntity;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
@@ -23,7 +24,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
 
 public class EntityUtil {
 
@@ -46,7 +46,7 @@ public class EntityUtil {
 
     int[] colors = new int[rand.nextInt(8) + 1];
     for (int i = 0; i < colors.length; i++) {
-      colors[i] = ItemDye.DYE_COLORS[rand.nextInt(16)];
+      colors[i] = DyeColor.values()[rand.nextInt(16)].getColorValue();
     }
     expl.putIntArray("Colors", colors);
     byte type = (byte) (rand.nextInt(3) + 1);
