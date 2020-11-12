@@ -11,7 +11,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-public class ItemButton extends GuiButton {
+public class ItemButton extends BaseButton {
 
   public static final int DEFAULT_WIDTH = 24;
   public static final int HWIDTH = DEFAULT_WIDTH / 2;

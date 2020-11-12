@@ -13,6 +13,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,28 +42,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import net.minecraft.command.CommandHandler;
 import net.minecraft.crash.CrashReportCategory;
-import net.minecraftforge.client.ClientCommandHandler;
-import net.minecraftforge.common.chunkio.ChunkIOExecutor;
-import net.minecraftforge.common.util.EnumHelper;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.FMLLog;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.Mod.Instance;
-import net.minecraftforge.fml.common.ModContainer;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLInterModComms.IMCEvent;
-import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
-@Mod(modid = EnderCore.MODID, name = EnderCore.NAME, version = EnderCore.VERSION, guiFactory = "com.enderio.core.common.config.BaseConfigFactory")
+@Mod(EnderCore.MODID)
 public class EnderCore implements IEnderMod {
 
   public static final @Nonnull String MODID = "endercore";
@@ -93,7 +78,7 @@ public class EnderCore implements IEnderMod {
   public void requestInvisibleMode() {
     final ModContainer activeModContainer = Loader.instance().activeModContainer();
     if (activeModContainer != null) {
-      invisibleRequesters.add(activeModContainer.getName());
+      invisibleRequesters.add(activeModContainer.getModId());
     } else {
       invisibleRequesters.add("null");
     }
@@ -107,8 +92,8 @@ public class EnderCore implements IEnderMod {
     return ImmutableSet.copyOf(invisibleRequesters);
   }
 
-  @EventHandler
-  public void preInit(@Nonnull FMLPreInitializationEvent event) {
+  @SubscribeEvent
+  public void setup(@Nonnull FMLCommonSetupEvent event) {
     ConfigHandler.configFolder = event.getModConfigurationDirectory();
     ConfigHandler.enderConfigFolder = new File(ConfigHandler.configFolder.getPath() + "/" + MODID);
     ConfigHandler.configFile = new File(ConfigHandler.enderConfigFolder.getPath() + "/" + event.getSuggestedConfigurationFile().getName());

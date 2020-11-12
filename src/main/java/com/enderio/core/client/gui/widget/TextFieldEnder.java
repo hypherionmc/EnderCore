@@ -10,10 +10,9 @@ import com.enderio.core.api.client.gui.IHideable;
 import com.google.common.base.Strings;
 
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiTextField;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 
-public class TextFieldEnder extends GuiTextField implements IHideable {
+public class TextFieldEnder extends TextFieldWidget implements IHideable {
 
   public interface ICharFilter {
 
@@ -48,17 +47,6 @@ public class TextFieldEnder extends GuiTextField implements IHideable {
   private int yOrigin;
   private @Nullable ICharFilter filter;
 
-  private static Field canLoseFocus;
-
-  static {
-    try {
-      canLoseFocus = ReflectionHelper.findField(GuiTextField.class, "canLoseFocus", "field_146212_n", "n");
-      canLoseFocus.setAccessible(true);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public TextFieldEnder(@Nonnull FontRenderer fnt, int x, int y, int width, int height) {
     this(fnt, x, y, width, height, null);
   }
@@ -80,11 +68,13 @@ public class TextFieldEnder extends GuiTextField implements IHideable {
     return this;
   }
 
+
+
   @Override
-  public boolean textboxKeyTyped(char c, int key) {
+  public boolean charTyped(char codePoint, int modifiers) {
     final ICharFilter filter2 = filter;
-    if (filter2 == null || filter2.passesFilter(this, c) || isSpecialChar(c, key)) {
-      return super.textboxKeyTyped(c, key);
+    if (filter2 == null || filter2.passesFilter(this, codePoint) || isSpecialChar(codePoint, modifiers)) {
+      return super.charTyped(codePoint, modifiers);
     }
     return false;
   }
@@ -95,14 +85,10 @@ public class TextFieldEnder extends GuiTextField implements IHideable {
   }
 
   public boolean getCanLoseFocus() {
-    try {
-      return canLoseFocus.getBoolean(this);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    return canLoseFocus;
   }
 
-  public boolean contains(int mouseX, int mouseY) {
+  public boolean contains(double mouseX, double mouseY) {
     return mouseX >= this.x && mouseX < this.x + width && mouseY >= this.y && mouseY < this.y + height;
   }
 

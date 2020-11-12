@@ -11,7 +11,7 @@ public class IconToggleButton extends IIconButton {
 
   private boolean selected = false;
 
-  public IconToggleButton(@Nonnull FontRenderer fr, int id, int x, int y, @Nullable TextureAtlasSprite icon, @Nullable ResourceLocation texture) {
+  public IconToggleButton(@Nonnull FontRenderer fr, int x, int y, @Nullable TextureAtlasSprite icon, @Nullable ResourceLocation texture) {
     super(fr, id, x, y, icon, texture);
   }
 

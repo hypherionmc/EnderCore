@@ -6,15 +6,14 @@ import javax.annotation.Nullable;
 import com.enderio.core.api.common.util.ITankAccess;
 import com.enderio.core.common.util.FluidUtil;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.material.MaterialColor;
+import net.minecraft.block.material.PushReaction;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.IFluidState;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
@@ -27,37 +26,41 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ToolType;
+
+import java.util.List;
 
 public abstract class BlockEnder<T extends TileEntityBase> extends Block {
 
   protected final @Nullable Class<? extends T> teClass;
 
   protected BlockEnder(@Nullable Class<? extends T> teClass) {
-    this(teClass, new Material(MapColor.IRON), MapColor.IRON);
+    this(teClass, AbstractBlock.Properties.create(Material.IRON));
   }
 
   protected BlockEnder(@Nullable Class<? extends T> teClass, @Nonnull Material mat) {
-    this(teClass, mat, mat.getMaterialMapColor());
+    this(teClass, AbstractBlock.Properties.create(mat, mat.getColor()));
   }
 
-  protected BlockEnder(@Nullable Class<? extends T> teClass, @Nonnull Material mat, MapColor mapColor) {
-    super(mat);
+  protected BlockEnder(@Nullable Class<? extends T> teClass, @Nonnull Material mat, MaterialColor matColor) {
+    this(teClass, AbstractBlock.Properties.create(mat, matColor));
+  }
+
+  protected BlockEnder(@Nullable Class<? extends T> teClass, AbstractBlock.Properties properties) {
+    super(properties.hardnessAndResistance(0.5f).sound(SoundType.METAL).harvestLevel(0).harvestTool(ToolType.PICKAXE));
     this.teClass = teClass;
-
-    setHardness(0.5F);
-    setSoundType(SoundType.METAL);
-    setHarvestLevel("pickaxe", 0);
   }
 
   @Override
-  public boolean hasTileEntity() { return teClass != null; }
-
+  public boolean hasTileEntity(BlockState state) {
+    return teClass != null;
+  }
 
   @Override
-  public @Nonnull EnumPushReaction getMobilityFlag(@Nonnull IBlockState state) {
+  public PushReaction getPushReaction(BlockState state) {
     // Some mods coremod vanilla to ignore this condition, so let's try to enforce it.
     // If this doesn't work, we need code to blow up the block when it detects it was moved...
-    return teClass != null ? EnumPushReaction.BLOCK : super.getMobilityFlag(state);
+    return teClass != null ? PushReaction.BLOCK : super.getPushReaction(state);
   }
 
   @Nullable
@@ -66,11 +69,12 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
     if (teClass != null) {
       try {
         T te = teClass.newInstance();
-        te.setWorldCreate(world);
+        // Seems to be done for us now: https://github.com/MinecraftForge/MinecraftForge/blob/f54998a6b7f2815798f30ee1674b22f52e003abc/patches/minecraft/net/minecraft/world/World.java.patch#L145
+//        te.setWorldCreate(world);
         te.init();
         return te;
       } catch (Exception e) {
-        throw new RuntimeException("Could not create tile entity for block " + getLocalizedName() + " for class " + teClass, e);
+        throw new RuntimeException("Could not create tile entity for block " + getTranslationKey() + " for class " + teClass, e);
       }
     }
     throw new RuntimeException(
@@ -105,7 +109,7 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
   }
 
   @Override
-  public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest, IFluidState fluid) {
+  public boolean removedByPlayer(BlockState state, World world, BlockPos pos, PlayerEntity player, boolean willHarvest, FluidState fluid) {
     if (willHarvest) {
       return true;
     }
@@ -118,42 +122,41 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
     worldIn.setBlockState(pos, Blocks.AIR.getDefaultState());
   }
 
+  // TODO: I think drops are now handled in JSON
+//  @Override
+//  public final void getDrops(@Nonnull NonNullList<ItemStack> drops, @Nonnull BlockAccess world, @Nonnull BlockPos pos, @Nonnull BlockState state,
+//      int fortune) {
+//    final T te = getTileEntity(world, pos);
+//    final ItemStack drop = getNBTDrop(world, pos, state, fortune, te);
+//    if (drop != null) {
+//      drops.add(drop);
+//    }
+//    getExtraDrops(drops, world, pos, state, fortune, te);
+//  }
+
+//  @Override
+//  public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player) {
+//    if (player.world.isRemote && player.isCreative() && Screen.hasControlDown()) {
+//      ItemStack nbtDrop = getNBTDrop(world, pos, state, 0, getTileEntity(world, pos));
+//      if (nbtDrop != null) {
+//        return nbtDrop;
+//      }
+//    }
+//    return processPickBlock(state, target, world, pos, player, super.getPickBlock(state, target, world, pos, player));
+//  }
 
 
-  @Override
-  public final void getDrops(@Nonnull NonNullList<ItemStack> drops, @Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nonnull IBlockState state,
-      int fortune) {
-    final T te = getTileEntity(world, pos);
-    final ItemStack drop = getNBTDrop(world, pos, state, fortune, te);
-    if (drop != null) {
-      drops.add(drop);
-    }
-    getExtraDrops(drops, world, pos, state, fortune, te);
-  }
+//  protected @Nonnull ItemStack processPickBlock(@Nonnull BlockState state, @Nonnull RayTraceResult target, @Nonnull IBlockReader world, @Nonnull BlockPos pos,
+//      @Nonnull PlayerEntity player, @Nonnull ItemStack pickBlock) {
+//    return pickBlock;
+//  }
 
-  @Override
-  public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player) {
-    if (player.world.isRemote && player.isCreative() && Screen.hasControlDown()) {
-      ItemStack nbtDrop = getNBTDrop(world, pos, state, 0, getTileEntity(world, pos));
-      if (nbtDrop != null) {
-        return nbtDrop;
-      }
-    }
-    return processPickBlock(state, target, world, pos, player, super.getPickBlock(state, target, world, pos, player));
-  }
-
-
-  protected @Nonnull ItemStack processPickBlock(@Nonnull BlockState state, @Nonnull RayTraceResult target, @Nonnull IBlockReader world, @Nonnull BlockPos pos,
-      @Nonnull PlayerEntity player, @Nonnull ItemStack pickBlock) {
-    return pickBlock;
-  }
-
-
-  public @Nullable ItemStack getNBTDrop(@Nonnull IBlockReader world, @Nonnull BlockPos pos, @Nonnull BlockState state, int fortune, @Nullable T te) {
-    ItemStack itemStack = new ItemStack(this, 1, damageDropped(state));
-    processDrop(world, pos, te, itemStack);
-    return itemStack;
-  }
+  // See above todo
+//  public @Nullable ItemStack getNBTDrop(@Nonnull IBlockReader world, @Nonnull BlockPos pos, @Nonnull BlockState state, int fortune, @Nullable T te) {
+//    ItemStack itemStack = new ItemStack(this, 1, damageDropped(state));
+//    processDrop(world, pos, te, itemStack);
+//    return itemStack;
+//  }
 
   protected final void processDrop(@Nonnull IBlockReader world, @Nonnull BlockPos pos, @Nullable T te, @Nonnull ItemStack drop) {
     if (te != null) {
@@ -273,7 +276,7 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
   protected boolean shouldDoWorkThisTick(@Nonnull World world, @Nonnull BlockPos pos, int interval) {
     T te = getTileEntity(world, pos);
     if (te == null) {
-      return world.getTotalWorldTime() % interval == 0;
+      return world.getGameTime() % interval == 0;
     } else {
       return te.shouldDoWorkThisTick(interval);
     }
@@ -282,7 +285,7 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
   protected boolean shouldDoWorkThisTick(@Nonnull World world, @Nonnull BlockPos pos, int interval, int offset) {
     T te = getTileEntity(world, pos);
     if (te == null) {
-      return (world.getTotalWorldTime() + offset) % interval == 0;
+      return (world.getGameTime() + offset) % interval == 0;
     } else {
       return te.shouldDoWorkThisTick(interval, offset);
     }
@@ -292,12 +295,12 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
     return teClass;
   }
 
-  // wrapper because vanilla null-annotations are wrong
-  @SuppressWarnings("null")
-  @Override
-  public @Nonnull Block setCreativeTab(@Nullable CreativeTabs tab) {
-    return super.setCreativeTab(tab);
-  }
+//  // wrapper because vanilla null-annotations are wrong
+//  @SuppressWarnings("null")
+//  @Override
+//  public @Nonnull Block setCreativeTab(@Nullable CreativeTabs tab) {
+//    return super.setCreativeTab(tab);
+//  }
 
   public void setShape(IShape<T> shape) {
     this.shape = shape;

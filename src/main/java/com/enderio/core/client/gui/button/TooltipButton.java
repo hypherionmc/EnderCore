@@ -8,9 +8,11 @@ import javax.annotation.Nullable;
 import com.enderio.core.api.client.gui.IGuiScreen;
 import com.enderio.core.client.gui.widget.GuiToolTip;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.text.ITextComponent;
 
-public class TooltipButton extends GuiButtonHideable {
+public class TooltipButton extends HideableButton {
 
   protected int xOrigin;
   protected int yOrigin;
@@ -18,8 +20,8 @@ public class TooltipButton extends GuiButtonHideable {
   protected @Nullable String[] toolTipText;
   protected @Nullable GuiToolTip toolTip;
 
-  public TooltipButton(@Nonnull IGuiScreen gui, int id, int x, int y, int widthIn, int heightIn, @Nonnull String buttonText) {
-    super(id, x, y, widthIn, heightIn, buttonText);
+  public TooltipButton(@Nonnull IGuiScreen gui, int x, int y, int widthIn, int heightIn, @Nonnull ITextComponent buttonText, IPressable pressedAction) {
+    super(x, y, widthIn, heightIn, buttonText, pressedAction);
     this.gui = gui;
     this.xOrigin = x;
     this.yOrigin = y;
@@ -106,23 +108,22 @@ public class TooltipButton extends GuiButtonHideable {
     }
   }
 
-  protected void updateTooltip(@Nonnull Minecraft mc, int mouseX, int mouseY) {
+  protected void updateTooltip(int mouseX, int mouseY) {
     if (toolTip != null) {
-      toolTip.setIsVisible(visible && enabled);
+      toolTip.setIsVisible(visible && active);
     }
   }
 
-  protected final void doDrawButton(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTicks) {
-    super.drawButton(mc, mouseX, mouseY, partialTicks);
+  protected final void doRenderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    super.renderButton(matrixStack, mouseX, mouseY, partialTicks);
   }
 
   /**
-   * Draws this button to the screen.
+   * Renders this button to the screen
    */
   @Override
-  public void drawButton(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTicks) {
-    updateTooltip(mc, mouseX, mouseY);
-    doDrawButton(mc, mouseX, mouseY, partialTicks);
+  public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    updateTooltip(mouseX, mouseY);
+    doRenderButton(matrixStack, mouseX, mouseY, partialTicks);
   }
-
 }

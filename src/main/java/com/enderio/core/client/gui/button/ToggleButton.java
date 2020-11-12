@@ -22,8 +22,16 @@ public class ToggleButton extends IconButton {
   private GuiToolTip selectedTooltip, unselectedTooltip;
   private boolean paintSelectionBorder;
 
-  public ToggleButton(@Nonnull IGuiScreen gui, int id, int x, int y, @Nonnull IWidgetIcon unselectedIcon, @Nonnull IWidgetIcon selectedIcon) {
-    super(gui, id, x, y, unselectedIcon);
+  public ToggleButton(@Nonnull IGuiScreen gui, int x, int y, @Nonnull IWidgetIcon unselectedIcon, @Nonnull IWidgetIcon selectedIcon) {
+    super(gui, x, y, unselectedIcon);
+    this.unselectedIcon = unselectedIcon;
+    this.selectedIcon = selectedIcon;
+    selected = false;
+    paintSelectionBorder = true;
+  }
+
+  public ToggleButton(@Nonnull IGuiScreen gui, int x, int y, @Nonnull IWidgetIcon unselectedIcon, @Nonnull IWidgetIcon selectedIcon, IPressable pressedAction) {
+    super(gui, x, y, unselectedIcon, pressedAction);
     this.unselectedIcon = unselectedIcon;
     this.selectedIcon = selectedIcon;
     selected = false;
@@ -46,25 +54,23 @@ public class ToggleButton extends IconButton {
   }
 
   @Override
-  protected @Nonnull IWidgetIcon getIconForHoverState(int hoverState) {
+  protected @Nonnull IWidgetIcon getIconForState() {
     if (!selected || !paintSelectionBorder) {
-      return super.getIconForHoverState(hoverState);
+      return super.getIconForState();
     }
-    if (hoverState == 0) {
+    if (!isActive()) {
       return EnderWidget.BUTTON_DISABLED;
     }
-    if (hoverState == 2) {
+    if (isHovered()) {
       return EnderWidget.BUTTON_DOWN_HIGHLIGHT;
     }
     return EnderWidget.BUTTON_DOWN;
   }
 
   @Override
-  public boolean mousePressed(@Nonnull Minecraft par1Minecraft, int par2, int par3) {
-    if (super.mousePressed(par1Minecraft, par2, par3)) {
-      return toggleSelected();
-    }
-    return false;
+  public void onClick(double mouseX, double mouseY) {
+    super.onClick(mouseX, mouseY);
+    toggleSelected();
   }
 
   protected boolean toggleSelected() {

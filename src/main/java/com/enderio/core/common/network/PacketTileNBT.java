@@ -8,7 +8,9 @@ import com.enderio.core.common.util.NullHelper;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -19,35 +21,35 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 /**
  * Created by CrazyPants on 27/02/14.
  */
-public class MessageTileNBT implements IMessage, IMessageHandler<MessageTileNBT, IMessage> {
+public class PacketTileNBT implements IEnderPacket {
 
   TileEntity te;
 
   long pos;
-  NBTTagCompound tags;
+  CompoundNBT tags;
 
   boolean renderOnUpdate = false;
 
-  public MessageTileNBT() {
+  public PacketTileNBT() {
 
   }
 
-  public MessageTileNBT(TileEntity te) {
+  public PacketTileNBT(TileEntity te) {
     this.te = te;
     pos = te.getPos().toLong();
-    te.writeToNBT(tags = new NBTTagCompound());
+    te.write(tags = new CompoundNBT());
   }
 
   @Override
-  public void toBytes(ByteBuf buffer) {
+  public void toBytes(PacketBuffer buffer) {
     buffer.writeLong(pos);
-    NetworkUtil.writeNBTTagCompound(tags, buffer);
+    buffer.writeCompoundTag(tags);
   }
 
   @Override
-  public void fromBytes(ByteBuf dis) {
-    pos = dis.readLong();
-    tags = NetworkUtil.readNBTTagCompound(dis);
+  public void fromBytes(PacketBuffer buffer) {
+    pos = buffer.readLong();
+    tags = buffer.readCompoundTag();
   }
 
   public @Nonnull BlockPos getPos() {
@@ -55,7 +57,7 @@ public class MessageTileNBT implements IMessage, IMessageHandler<MessageTileNBT,
   }
 
   @Override
-  public IMessage onMessage(MessageTileNBT msg, MessageContext ctx) {
+  public IMessage onMessage(PacketTileNBT msg, MessageContext ctx) {
     te = handle(ctx.getServerHandler().player.world);
     if (te != null && renderOnUpdate) {
       IBlockState bs = te.getWorld().getBlockState(msg.getPos());

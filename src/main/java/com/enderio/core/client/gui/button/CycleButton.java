@@ -53,12 +53,9 @@ public class CycleButton<T extends Enum<T> & ICycleEnum> extends IconButton {
   }
 
   @Override
-  public boolean mousePressed(@Nonnull Minecraft par1Minecraft, int par2, int par3) {
-    boolean result = super.mousePressed(par1Minecraft, par2, par3);
-    if (result) {
-      nextMode();
-    }
-    return result;
+  public void onClick(double mouseX, double mouseY) {
+    super.onClick(mouseX, mouseY);
+    nextMode();
   }
 
   @Override
