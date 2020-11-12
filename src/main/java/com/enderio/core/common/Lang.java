@@ -178,6 +178,6 @@ public class Lang {
    * @return True if there is a localization mapped, false otherwise.
    */
   public boolean canLocalizeExact(@Nonnull String unloc) {
-    return I18n.format(unloc);
+    return I18n.hasKey(unloc);
   }
 }

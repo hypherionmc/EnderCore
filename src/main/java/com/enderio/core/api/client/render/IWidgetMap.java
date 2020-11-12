@@ -107,10 +107,10 @@ public interface IWidgetMap {
         tes.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
       }
 
-      double minU = (double) widget.getX() / getSize();
-      double maxU = (double) (widget.getX() + widget.getWidth()) / getSize();
-      double minV = (double) widget.getY() / getSize();
-      double maxV = (double) (widget.getY() + widget.getHeight()) / getSize();
+      float minU = (float) widget.getX() / getSize();
+      float maxU = (float) (widget.getX() + widget.getWidth()) / getSize();
+      float minV = (float) widget.getY() / getSize();
+      float maxV = (float) (widget.getY() + widget.getHeight()) / getSize();
 
       if (flipY) {
         tes.pos(x, y + height, zLevel).tex(minU, minV).endVertex();

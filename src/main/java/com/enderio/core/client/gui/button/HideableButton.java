@@ -2,8 +2,11 @@ package com.enderio.core.client.gui.button;
 
 import com.enderio.core.api.client.gui.IHideable;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.ITextComponent;
+
+import javax.annotation.Nonnull;
 
 public class HideableButton extends BaseButton implements IHideable {
   public HideableButton(int x, int y, int width, int height, ITextComponent buttonText) {

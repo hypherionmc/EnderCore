@@ -53,34 +53,14 @@ public class IconButton extends TooltipButton {
     this.icon = icon;
   }
 
-  /**
-   * Override this to handle mouse clicks with other buttons than the left
-   *
-   * @param mc
-   *          The MC instance
-   * @param mouseX
-   *          X coordinate of mouse click
-   * @param mouseY
-   *          Y coordinate of mouse click
-   * @param button
-   *          the mouse button - only called for button {@literal >}= 1
-   * @return true if the mouse click is handled
-   */
-  public boolean mousePressedButton(@Nonnull Minecraft mc, int mouseX, int mouseY, int button) {
-    return false;
-  }
-
-  protected boolean checkMousePress(@Nonnull Minecraft mc, int mouseX, int mouseY) {
-    // call super here so that we only get the area check
-    return super.mousePressed(mc, mouseX, mouseY);
-  }
-
   @Override
   public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
     updateTooltip(mouseX, mouseY);
     if (isVisible()) {
       GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-      mouseDragged(mouseX, mouseY);
+
+      // TODO: WHY
+//      mouseDragged(mouseX, mouseY);
 
       IWidgetIcon background = getIconForState();
 

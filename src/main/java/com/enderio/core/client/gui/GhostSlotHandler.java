@@ -59,7 +59,7 @@ public class GhostSlotHandler {
    * @param button
    *          The button used (0=left, 1=right). The mouse wheel is mapped to -1=down and -2=up.
    */
-  protected void ghostSlotClicked(@Nonnull BaseContainerScreen gui, @Nonnull GhostSlot slot, int x, int y, int button) {
+  protected void ghostSlotClicked(@Nonnull BaseContainerScreen gui, @Nonnull GhostSlot slot, double x, double y, int button) {
     ItemStack handStack = Minecraft.getInstance().player.inventory.getItemStack();
     ItemStack existingStack = slot.getStack();
     if (button == 0) { // left

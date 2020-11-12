@@ -73,7 +73,7 @@ public class GhostBackgroundItemSlot extends GhostSlot {
   }
 
   @Override
-  public boolean isMouseOver(int mx, int my) {
+  public boolean isMouseOver(double mx, double my) {
     return false;
   }
 

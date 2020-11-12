@@ -14,17 +14,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.enderio.core.api.common.config.IConfigHandler;
 import com.enderio.core.common.CommonProxy;
-import com.enderio.core.common.Handlers;
 import com.enderio.core.common.Lang;
-import com.enderio.core.common.OreDict;
 import com.enderio.core.common.command.CommandReloadConfigs;
 import com.enderio.core.common.command.CommandScoreboardInfo;
 import com.enderio.core.common.compat.CompatRegistry;
@@ -35,7 +33,6 @@ import com.enderio.core.common.network.EnderPacketHandler;
 import com.enderio.core.common.tweaks.Tweaks;
 import com.enderio.core.common.util.EnderFileUtils;
 import com.enderio.core.common.util.NullHelper;
-import com.enderio.core.common.util.PermanentCache;
 import com.enderio.core.common.util.stackable.Things;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
@@ -71,19 +68,6 @@ public class EnderCore implements IEnderMod {
     SimpleMixinLoader.loadMixinSources(this);
   }
 
-  /**
-   * Call this method BEFORE preinit (construction phase) to request that EnderCore start in invisible mode. This will disable ANY gameplay features unless the
-   * user forcibly disables invisible mode in the config.
-   */
-  public void requestInvisibleMode() {
-    final ModContainer activeModContainer = Loader.instance().activeModContainer();
-    if (activeModContainer != null) {
-      invisibleRequesters.add(activeModContainer.getModId());
-    } else {
-      invisibleRequesters.add("null");
-    }
-  }
-
   public boolean invisibilityRequested() {
     return !invisibleRequesters.isEmpty();
   }
@@ -108,14 +92,13 @@ public class EnderCore implements IEnderMod {
     }
 
     ConfigHandler.instance().initialize(NullHelper.notnullJ(ConfigHandler.configFile, "it was there a second ago, I swear!"));
-    Handlers.preInit(event);
 
     CompatRegistry.INSTANCE.handle(event);
 
     proxy.onPreInit(event);
   }
 
-  @EventHandler
+  @SubscribeEvent
   public void init(@Nonnull FMLInitializationEvent event) {
     OreDict.registerVanilla();
     Things.init(event);
@@ -125,7 +108,6 @@ public class EnderCore implements IEnderMod {
       c.initHook();
     }
 
-    Handlers.register(event);
     CompatRegistry.INSTANCE.handle(event);
     if (event.getSide().isServer()) {
       ((CommandHandler) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager()).registerCommand(CommandReloadConfigs.SERVER);
@@ -136,7 +118,7 @@ public class EnderCore implements IEnderMod {
     IMCRegistry.INSTANCE.init();
   }
 
-  @EventHandler
+  @SubscribeEvent
   public void postInit(@Nonnull FMLPostInitializationEvent event) {
     Tweaks.loadLateTweaks();
     for (IConfigHandler c : configs) {
@@ -147,7 +129,7 @@ public class EnderCore implements IEnderMod {
     ConfigHandler.instance().loadRightClickCrops();
   }
 
-  @EventHandler
+  @SubscribeEvent
   public void loadComplete(@Nonnull FMLLoadCompleteEvent event) {
     Things.init(event);
 
@@ -188,16 +170,11 @@ public class EnderCore implements IEnderMod {
     }
   }
 
-  @EventHandler
-  public void onServerStarting(@Nonnull FMLServerStartingEvent event) {
-    event.registerServerCommand(new CommandScoreboardInfo());
-    PermanentCache.saveCaches();
-  }
-
-  @EventHandler
-  public void onIMCEvent(@Nonnull IMCEvent event) {
-    IMCRegistry.INSTANCE.handleEvent(event);
-  }
+//  @SubscribeEvent
+//  public void onServerStarting(@Nonnull FMLServerStartingEvent event) {
+//    event.registerServerCommand(new CommandScoreboardInfo());
+//    PermanentCache.saveCaches();
+//  }
 
   @Override
   public @Nonnull String modid() {

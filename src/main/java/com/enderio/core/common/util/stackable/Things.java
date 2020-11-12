@@ -26,6 +26,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.crafting.CompoundIngredient;
 import net.minecraftforge.common.crafting.NBTIngredient;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 /**
  * This class is a way to hold lists of configurable items and blocks.

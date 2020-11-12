@@ -19,7 +19,7 @@ public interface IGuiOverlay extends IHideable {
     //
     // boolean mouseMovedOrUp(int par1, int par2, int par3);
 
-    boolean handleMouseInput(int x, int y, int b);
+//    boolean handleMouseInput(int x, int y, int b);
 
     boolean isMouseInBounds(double mouseX, double mouseY);
     

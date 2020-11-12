@@ -94,8 +94,8 @@ public class ColorButton extends IconButton {
   public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
     super.renderButton(matrixStack, mouseX, mouseY, partialTicks);
     if (this.isVisible()) {
-      BufferBuilder tes = Tessellator.getInstance().getBuffer();
-      tes.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+//      BufferBuilder tes = Tessellator.getInstance().getBuffer();
+//      tes.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 
       int xAdj = this.x + 2;
       int yAdj = this.y + 2;
@@ -103,14 +103,18 @@ public class ColorButton extends IconButton {
       RenderSystem.disableTexture();
       DyeColor col = DyeColor.values()[colorIndex];
       Vector3f c = ColorUtil.toFloat(col.getColorValue());
+
       RenderSystem.color3f(c.x, c.y, c.z);
 
-      tes.pos(xAdj, yAdj + getWidth() - 4, zLevel).color(c.x, c.y, c.z, 1).endVertex();
-      tes.pos(xAdj + getWidth() - 4, yAdj + getHeight() - 4, zLevel).color(c.x, c.y, c.z, 1).endVertex();
-      tes.pos(xAdj + getWidth() - 4, yAdj + 0, zLevel).color(c.x, c.y, c.z, 1).endVertex();
-      tes.pos(xAdj, yAdj + 0, zLevel).color(c.x, c.y, c.z, 1).endVertex();
+      // TODO: Double check this
+      blit(matrixStack, xAdj, yAdj, 0, 0, getWidth(), getHeight());
 
-      Tessellator.getInstance().draw();
+//      tes.pos(xAdj, yAdj + getWidth() - 4, zLevel).color(c.x, c.y, c.z, 1).endVertex();
+//      tes.pos(xAdj + getWidth() - 4, yAdj + getHeight() - 4, zLevel).color(c.x, c.y, c.z, 1).endVertex();
+//      tes.pos(xAdj + getWidth() - 4, yAdj + 0, zLevel).color(c.x, c.y, c.z, 1).endVertex();
+//      tes.pos(xAdj, yAdj + 0, zLevel).color(c.x, c.y, c.z, 1).endVertex();
+
+//      Tessellator.getInstance().draw();
       RenderSystem.enableTexture();
 
     }

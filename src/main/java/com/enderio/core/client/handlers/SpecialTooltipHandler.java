@@ -10,12 +10,10 @@ import javax.annotation.Nullable;
 import com.enderio.core.EnderCore;
 import com.enderio.core.api.client.gui.IAdvancedTooltipProvider;
 import com.enderio.core.api.client.gui.IResourceTooltipProvider;
-import com.enderio.core.common.Handlers.Handler;
 import com.enderio.core.common.util.ItemUtil;
 import com.enderio.core.common.util.NNList;
 import com.google.common.collect.Lists;
 
-import net.java.games.input.Keyboard;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
@@ -25,12 +23,11 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.lang3.BooleanUtils;
 import org.lwjgl.glfw.GLFW;
 
-import static com.enderio.core.common.config.ConfigHandler.showDurabilityTooltips;
-
-@Handler
+@Mod.EventBusSubscriber
 public class SpecialTooltipHandler {
 
   public interface ITooltipCallback extends IAdvancedTooltipProvider {

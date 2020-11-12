@@ -40,7 +40,7 @@ public class CycleButton<T extends Enum<T> & ICycleEnum> extends IconButton {
   private @Nullable T mode;
 
   public CycleButton(@Nonnull IGuiScreen gui, int id, int x, int y, @Nonnull Class<T> enumClass) {
-    super(gui, id, x, y, null);
+    super(gui, x, y, null);
     modes = NNList.of(enumClass);
   }
 
@@ -59,8 +59,8 @@ public class CycleButton<T extends Enum<T> & ICycleEnum> extends IconButton {
   }
 
   @Override
-  public boolean mousePressedButton(@Nonnull Minecraft mc, int mouseX, int mouseY, int button) {
-    boolean result = button == 1 && super.checkMousePress(mc, mouseX, mouseY);
+  public boolean buttonPressed(double mouseX, double mouseY, int button) {
+    boolean result = button == 1 && super.clicked(mouseX, mouseY);
     if (result) {
       prevMode();
     }
