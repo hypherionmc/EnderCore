@@ -13,33 +13,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 
+import com.enderio.core.client.ClientProxy;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.enderio.core.api.common.config.IConfigHandler;
 import com.enderio.core.common.CommonProxy;
 import com.enderio.core.common.Lang;
-import com.enderio.core.common.command.CommandReloadConfigs;
-import com.enderio.core.common.command.CommandScoreboardInfo;
-import com.enderio.core.common.compat.CompatRegistry;
-import com.enderio.core.common.config.ConfigHandler;
-import com.enderio.core.common.imc.IMCRegistry;
-import com.enderio.core.common.mixin.SimpleMixinLoader;
 import com.enderio.core.common.network.EnderPacketHandler;
-import com.enderio.core.common.tweaks.Tweaks;
-import com.enderio.core.common.util.EnderFileUtils;
 import com.enderio.core.common.util.NullHelper;
 import com.enderio.core.common.util.stackable.Things;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import net.minecraft.crash.CrashReportCategory;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod(EnderCore.MODID)
@@ -54,18 +43,18 @@ public class EnderCore implements IEnderMod {
   public static final @Nonnull Logger logger = NullHelper.notnull(LogManager.getLogger(NAME), "failed to aquire logger");
   public static final @Nonnull Lang lang = new Lang(MODID);
 
-  @Instance(MODID)
   public static EnderCore instance;
 
-  @SidedProxy(serverSide = "com.enderio.core.common.CommonProxy", clientSide = "com.enderio.core.client.ClientProxy")
   public static CommonProxy proxy;
 
-  public final @Nonnull List<IConfigHandler> configs = Lists.newArrayList();
+//  public final @Nonnull List<IConfigHandler> configs = Lists.newArrayList();
 
   private final @Nonnull Set<String> invisibleRequesters = Sets.newHashSet();
 
   public EnderCore() {
-    SimpleMixinLoader.loadMixinSources(this);
+    instance = this;
+
+    proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
   }
 
   public boolean invisibilityRequested() {
@@ -78,96 +67,97 @@ public class EnderCore implements IEnderMod {
 
   @SubscribeEvent
   public void setup(@Nonnull FMLCommonSetupEvent event) {
-    ConfigHandler.configFolder = event.getModConfigurationDirectory();
-    ConfigHandler.enderConfigFolder = new File(ConfigHandler.configFolder.getPath() + "/" + MODID);
-    ConfigHandler.configFile = new File(ConfigHandler.enderConfigFolder.getPath() + "/" + event.getSuggestedConfigurationFile().getName());
+//    ConfigHandler.configFolder = event.getModConfigurationDirectory();
+//    ConfigHandler.enderConfigFolder = new File(ConfigHandler.configFolder.getPath() + "/" + MODID);
+//    ConfigHandler.configFile = new File(ConfigHandler.enderConfigFolder.getPath() + "/" + event.getSuggestedConfigurationFile().getName());
 
-    if (!ConfigHandler.configFile.exists() && event.getSuggestedConfigurationFile().exists()) {
-      try {
-        FileUtils.copyFile(event.getSuggestedConfigurationFile(), ConfigHandler.configFile);
-      } catch (IOException e) {
-        Throwables.propagate(e);
-      }
-      EnderFileUtils.safeDelete(event.getSuggestedConfigurationFile());
-    }
+//    if (!ConfigHandler.configFile.exists() && event.getSuggestedConfigurationFile().exists()) {
+//      try {
+//        FileUtils.copyFile(event.getSuggestedConfigurationFile(), ConfigHandler.configFile);
+//      } catch (IOException e) {
+//        Throwables.propagate(e);
+//      }
+//      EnderFileUtils.safeDelete(event.getSuggestedConfigurationFile());
+//    }
 
-    ConfigHandler.instance().initialize(NullHelper.notnullJ(ConfigHandler.configFile, "it was there a second ago, I swear!"));
+//    ConfigHandler.instance().initialize(NullHelper.notnullJ(ConfigHandler.configFile, "it was there a second ago, I swear!"));
 
-    CompatRegistry.INSTANCE.handle(event);
+//    CompatRegistry.INSTANCE.handle(event);
 
-    proxy.onPreInit(event);
+    proxy.setup(event);
   }
 
-  @SubscribeEvent
-  public void init(@Nonnull FMLInitializationEvent event) {
-    OreDict.registerVanilla();
-    Things.init(event);
-    EnderPacketHandler.init();
+//  @SubscribeEvent
+//  public void init(@Nonnull FMLInitializationEvent event) {
+////    OreDict.registerVanilla();
+//    Things.init(event);
+//    EnderPacketHandler.init();
+//
+////    for (IConfigHandler c : configs) {
+////      c.initHook();
+////    }
+//
+////    CompatRegistry.INSTANCE.handle(event);
+////    if (event.getSide().isServer()) {
+////      ((CommandHandler) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager()).registerCommand(CommandReloadConfigs.SERVER);
+////    } else {
+////      ClientCommandHandler.instance.registerCommand(CommandReloadConfigs.CLIENT);
+////    }
+//
+////    IMCRegistry.INSTANCE.init();
+//  }
 
-    for (IConfigHandler c : configs) {
-      c.initHook();
-    }
-
-    CompatRegistry.INSTANCE.handle(event);
-    if (event.getSide().isServer()) {
-      ((CommandHandler) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager()).registerCommand(CommandReloadConfigs.SERVER);
-    } else {
-      ClientCommandHandler.instance.registerCommand(CommandReloadConfigs.CLIENT);
-    }
-
-    IMCRegistry.INSTANCE.init();
-  }
-
-  @SubscribeEvent
-  public void postInit(@Nonnull FMLPostInitializationEvent event) {
-    Tweaks.loadLateTweaks();
-    for (IConfigHandler c : configs) {
-      c.postInitHook();
-    }
-
-    CompatRegistry.INSTANCE.handle(event);
-    ConfigHandler.instance().loadRightClickCrops();
-  }
+//  @SubscribeEvent
+//  public void postInit(@Nonnull FMLPostInitializationEvent event) {
+//    Tweaks.loadLateTweaks();
+////    for (IConfigHandler c : configs) {
+////      c.postInitHook();
+////    }
+//
+////    CompatRegistry.INSTANCE.handle(event);
+////    ConfigHandler.instance().loadRightClickCrops();
+//  }
 
   @SubscribeEvent
   public void loadComplete(@Nonnull FMLLoadCompleteEvent event) {
     Things.init(event);
 
-    ThreadPoolExecutor fixedChunkExecutor = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-        new ThreadFactory() {
-          private AtomicInteger count = new AtomicInteger(1);
+//    ThreadPoolExecutor fixedChunkExecutor = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+//        new ThreadFactory() {
+//          private AtomicInteger count = new AtomicInteger(1);
+//
+//          @Override
+//          public Thread newThread(Runnable r) {
+//            Thread thread = new Thread(r, "Chunk I/O Executor Thread-" + count.getAndIncrement());
+//            thread.setDaemon(true);
+//            return thread;
+//          }
+//        }) {
+//
+//      @Override
+//      @SuppressWarnings({ "unchecked", "rawtypes" })
+//      protected void afterExecute(Runnable r, Throwable t) {
+//        if (t != null) {
+//          try {
+//            FMLLog.log.error("Unhandled exception loading chunk:", t);
+//            Object queuedChunk = ReflectionHelper.getPrivateValue((Class) r.getClass(), (Object) r, "chunkInfo");
+//            Class cls = queuedChunk.getClass();
+//            FMLLog.log.error(queuedChunk);
+//            int x = (Integer) ReflectionHelper.getPrivateValue(cls, queuedChunk, "x");
+//            int z = (Integer) ReflectionHelper.getPrivateValue(cls, queuedChunk, "z");
+//            FMLLog.log.error(CrashReportCategory.getCoordinateInfo(x << 4, 64, z << 4));
+//          } catch (Throwable t2) {
+//            FMLLog.log.error(t2);
+//          }
+//        }
+//      }
+//    };
 
-          @Override
-          public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r, "Chunk I/O Executor Thread-" + count.getAndIncrement());
-            thread.setDaemon(true);
-            return thread;
-          }
-        }) {
-
-      @Override
-      @SuppressWarnings({ "unchecked", "rawtypes" })
-      protected void afterExecute(Runnable r, Throwable t) {
-        if (t != null) {
-          try {
-            FMLLog.log.error("Unhandled exception loading chunk:", t);
-            Object queuedChunk = ReflectionHelper.getPrivateValue((Class) r.getClass(), (Object) r, "chunkInfo");
-            Class cls = queuedChunk.getClass();
-            FMLLog.log.error(queuedChunk);
-            int x = (Integer) ReflectionHelper.getPrivateValue(cls, queuedChunk, "x");
-            int z = (Integer) ReflectionHelper.getPrivateValue(cls, queuedChunk, "z");
-            FMLLog.log.error(CrashReportCategory.getCoordinateInfo(x << 4, 64, z << 4));
-          } catch (Throwable t2) {
-            FMLLog.log.error(t2);
-          }
-        }
-      }
-    };
-    try {
-      EnumHelper.setFailsafeFieldValue(ReflectionHelper.findField(ChunkIOExecutor.class, "pool"), null, fixedChunkExecutor);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+//    try {
+//      EnumHelper.setFailsafeFieldValue(ReflectionHelper.findField(ChunkIOExecutor.class, "pool"), null, fixedChunkExecutor);
+//    } catch (Exception e) {
+//      throw new RuntimeException(e);
+//    }
   }
 
 //  @SubscribeEvent

@@ -10,7 +10,6 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.oredict.OreDictionary;
 
 class StringThing implements IThing {
 
@@ -91,16 +90,16 @@ class StringThing implements IThing {
       }
     } else {
       // this ugly thing seems to be what Forge wants you to use
+      if (allowBlock && net.minecraft.block.Block.REGISTRY.containsKey(resourceLocation)) {
+        Block block = net.minecraft.block.Block.REGISTRY.getObject(resourceLocation);
+        return new ItemStackThing(new ItemStack(block, 1, meta)).bake();
+      }
+      // this ugly thing seems to be what Forge wants you to use
       if (allowItem && net.minecraft.item.Item.REGISTRY.containsKey(resourceLocation)) {
         Item item = net.minecraft.item.Item.REGISTRY.getObject(resourceLocation);
         if (item != null) {
           return new ItemStackThing(new ItemStack(item, 1, meta)).bake();
         }
-      }
-      // this ugly thing seems to be what Forge wants you to use
-      if (allowBlock && net.minecraft.block.Block.REGISTRY.containsKey(resourceLocation)) {
-        Block block = net.minecraft.block.Block.REGISTRY.getObject(resourceLocation);
-        return new ItemStackThing(new ItemStack(block, 1, meta)).bake();
       }
     }
     return NNList.emptyList();

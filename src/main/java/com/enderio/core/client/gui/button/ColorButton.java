@@ -40,8 +40,8 @@ public class ColorButton extends IconButton {
   }
 
   @Override
-  public boolean mousePressedButton(@Nonnull Minecraft mc, int mouseX, int mouseY, int button) {
-    boolean result = button == 1 && super.checkMousePress(mc, mouseX, mouseY);
+  public boolean buttonPressed(double mouseX, double mouseY, int button) {
+    boolean result = button == 1 && super.mouseClicked(mouseX, mouseY, button);
     if (result) {
       prevColor();
     }

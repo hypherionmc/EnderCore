@@ -37,7 +37,7 @@ public class CommonProxy {
     throw new RuntimeException(sb.toString());
   }
 
-  public void onPreInit(@Nonnull FMLCommonSetupEvent event) {
+  public void setup(@Nonnull FMLCommonSetupEvent event) {
   }
 
 }

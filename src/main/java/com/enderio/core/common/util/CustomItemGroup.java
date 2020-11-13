@@ -5,12 +5,14 @@ import javax.annotation.Nonnull;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class CreativeTabsCustom extends ItemGroup {
+public class CustomItemGroup extends ItemGroup {
 
   private @Nonnull ItemStack displayStack = ItemStack.EMPTY;
 
-  public CreativeTabsCustom(@Nonnull String label) {
+  public CustomItemGroup(@Nonnull String label) {
     super(label);
   }
 
@@ -18,7 +20,7 @@ public class CreativeTabsCustom extends ItemGroup {
    * @param item
    *          Item to display
    */
-  public CreativeTabsCustom setDisplay(@Nonnull Item item) {
+  public CustomItemGroup setDisplay(@Nonnull Item item) {
     return setDisplay(item, 0);
   }
 
@@ -28,7 +30,7 @@ public class CreativeTabsCustom extends ItemGroup {
    * @param damage
    *          Damage of item to display
    */
-  public CreativeTabsCustom setDisplay(@Nonnull Item item, int damage) {
+  public CustomItemGroup setDisplay(@Nonnull Item item, int damage) {
     return setDisplay(new ItemStack(item, 1));
   }
 
@@ -36,11 +38,12 @@ public class CreativeTabsCustom extends ItemGroup {
    * @param display
    *          ItemStack to display
    */
-  public CreativeTabsCustom setDisplay(@Nonnull ItemStack display) {
+  public CustomItemGroup setDisplay(@Nonnull ItemStack display) {
     this.displayStack = display.copy();
     return this;
   }
 
+  @OnlyIn(Dist.CLIENT)
   @Override
   public ItemStack createIcon() {
     return displayStack;

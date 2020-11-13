@@ -1,5 +1,6 @@
 package com.enderio.core.common.util;
 
+// TODO: Appears to be unused
 public class MetadataUtil {
 
   public static void printBits(int meta) {

@@ -8,10 +8,8 @@ import com.enderio.core.common.util.NNList.NNIterator;
 import com.enderio.core.common.util.stackable.IThing.Zwieback;
 
 import net.minecraft.block.Block;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.oredict.OreDictionary;
 
 public class ExclusionThing implements Zwieback {
 

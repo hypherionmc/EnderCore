@@ -60,10 +60,4 @@ public class TankAccessFluidWrapper implements IFluidWrapper {
     return null;
   }
 
-  @Override
-  @Nonnull
-  public List<ITankInfoWrapper> getTankInfoWrappers() {
-    return NNList.emptyList();
-  }
-
 }

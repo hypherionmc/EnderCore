@@ -29,8 +29,8 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class Util {
 
@@ -177,13 +177,13 @@ public class Util {
   public static boolean dumpModObjects(@Nonnull File file) {
 
     StringBuilder sb = new StringBuilder();
-    for (Object key : Block.REGISTRY.getKeys()) {
+    for (Object key : ForgeRegistries.BLOCKS.getKeys()) {
       if (key != null) {
         sb.append(key.toString());
         sb.append("\n");
       }
     }
-    for (Object key : Item.REGISTRY.getKeys()) {
+    for (Object key : ForgeRegistries.ITEMS.getKeys()) {
       if (key != null) {
         sb.append(key.toString());
         sb.append("\n");
@@ -192,19 +192,6 @@ public class Util {
 
     try {
       Files.write(sb, file, Charsets.UTF_8);
-      return true;
-    } catch (IOException e) {
-      Log.warn("Error dumping ore dictionary entries: " + e.getMessage());
-      e.printStackTrace();
-      return false;
-    }
-  }
-
-  public static boolean dumpOreNames(@Nonnull File file) {
-
-    try {
-      String[] oreNames = OreDictionary.getOreNames();
-      Files.write(Joiner.on("\n").join(oreNames), file, Charsets.UTF_8);
       return true;
     } catch (IOException e) {
       Log.warn("Error dumping ore dictionary entries: " + e.getMessage());
@@ -229,10 +216,10 @@ public class Util {
     return ItemStack.EMPTY;
   }
 
-  public static @Nonnull Vec3d getEyePosition(@Nonnull PlayerEntity player) {
+  public static @Nonnull net.minecraft.util.math.vector.Vector3d getEyePosition(@Nonnull PlayerEntity player) {
     double y = player.getPosY();
     y += player.getEyeHeight();
-    return new Vec3d(player.getPosX(), y, player.getPosZ());
+    return new net.minecraft.util.math.vector.Vector3d(player.getPosX(), y, player.getPosZ());
   }
 
   public static @Nonnull Vector3d getEyePositionEio(@Nonnull PlayerEntity player) {
@@ -242,15 +229,15 @@ public class Util {
   }
 
   public static @Nonnull Vector3d getLookVecEio(@Nonnull PlayerEntity player) {
-    Vec3d lv = player.getLookVec();
+    net.minecraft.util.math.vector.Vector3d lv = player.getLookVec();
     return new Vector3d(lv.x, lv.y, lv.z);
   }
 
   // Code adapted from World.rayTraceBlocks to return all
   // collided blocks
-  public static @Nonnull List<RayTraceResult> raytraceAll(@Nonnull World world, @Nonnull Vec3d startVector, @Nonnull Vec3d endVec, boolean includeLiquids) {
+  public static @Nonnull List<RayTraceResult> raytraceAll(@Nonnull World world, @Nonnull net.minecraft.util.math.vector.Vector3d startVector, @Nonnull net.minecraft.util.math.vector.Vector3d endVec, boolean includeLiquids) {
     boolean ignoreBlockWithoutBoundingBox = true;
-    Vec3d startVec = startVector;
+    net.minecraft.util.math.vector.Vector3d startVec = startVector;
 
     List<RayTraceResult> result = new ArrayList<RayTraceResult>();
 
@@ -350,13 +337,13 @@ public class Util {
 
           if (d3 < d4 && d3 < d5) {
             enumfacing = i > l ? Direction.WEST : Direction.EAST;
-            startVec = new Vec3d(d0, startVec.y + d7 * d3, startVec.z + d8 * d3);
+            startVec = new net.minecraft.util.math.vector.Vector3d(d0, startVec.y + d7 * d3, startVec.z + d8 * d3);
           } else if (d4 < d5) {
             enumfacing = j > i1 ? Direction.DOWN : Direction.UP;
-            startVec = new Vec3d(startVec.x + d6 * d4, d1, startVec.z + d8 * d4);
+            startVec = new net.minecraft.util.math.vector.Vector3d(startVec.x + d6 * d4, d1, startVec.z + d8 * d4);
           } else {
             enumfacing = k > j1 ? Direction.NORTH : Direction.SOUTH;
-            startVec = new Vec3d(startVec.x + d6 * d5, startVec.y + d7 * d5, d2);
+            startVec = new net.minecraft.util.math.vector.Vector3d(startVec.x + d6 * d5, startVec.y + d7 * d5, d2);
           }
 
           l = MathHelper.floor(startVec.x) - (enumfacing == Direction.EAST ? 1 : 0);

@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.IProjectile;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 
@@ -24,7 +24,7 @@ public class MagnetUtil {
     if (entity == null || !entity.isAlive()) {
       return false;
     }
-    if (entity instanceof IProjectile && entity.getMotion().y > 0.01) {
+    if (entity instanceof ProjectileEntity && entity.getMotion().y > 0.01) {
       return false;
     }
 

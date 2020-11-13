@@ -1,7 +1,6 @@
 package com.enderio.core.common.handlers;
 
 import com.enderio.core.EnderCore;
-import com.enderio.core.common.config.ConfigHandler;
 
 import net.minecraft.util.Util;
 import net.minecraft.util.text.StringTextComponent;

@@ -11,21 +11,23 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
 import net.minecraft.block.material.PushReaction;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.renderer.chunk.ChunkRenderCache;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.ToolType;
 
 import java.util.List;
@@ -100,12 +102,12 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
       }
     }
 
-    return openGui(worldIn, pos, player, side);
+    return openGui(worldIn, pos, player, hit.getFace());
   }
 
 
-  protected boolean openGui(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull PlayerEntity entityPlayer, @Nonnull EnumFacing side) {
-    return false;
+  protected ActionResultType openGui(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull PlayerEntity entityPlayer, @Nonnull Direction side) {
+    return ActionResultType.FAIL;
   }
 
   @Override
@@ -208,10 +210,10 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
    *
    */
   protected @Nullable T getTileEntitySafe(@Nonnull IBlockReader world, @Nonnull BlockPos pos) {
-    if (world instanceof ChunkCache) {
+    if (world instanceof ChunkRenderCache) {
       final Class<? extends T> teClass2 = teClass;
       if (teClass2 != null) {
-        TileEntity te = ((ChunkCache) world).getTileEntity(pos, EnumCreateEntityType.CHECK);
+        TileEntity te = ((ChunkRenderCache) world).getTileEntity(pos, Chunk.CreateEntityType.CHECK);
         if (teClass2.isInstance(te)) {
           return teClass2.cast(te);
         }
@@ -239,8 +241,8 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
   @SuppressWarnings("unchecked")
   public static @Nullable <Q> Q getAnyTileEntitySafe(@Nonnull IBlockReader world, @Nonnull BlockPos pos, Class<Q> teClass) {
     TileEntity te = null;
-    if (world instanceof ChunkCache) {
-      te = ((ChunkCache) world).getTileEntity(pos, EnumCreateEntityType.CHECK);
+    if (world instanceof ChunkRenderCache) {
+      te = ((ChunkRenderCache) world).getTileEntity(pos, Chunk.CreateEntityType.CHECK);
     } else if (world instanceof World) {
       if (((World) world).isBlockLoaded(pos)) {
         te = world.getTileEntity(pos);
@@ -302,88 +304,91 @@ public abstract class BlockEnder<T extends TileEntityBase> extends Block {
 //    return super.setCreativeTab(tab);
 //  }
 
-  public void setShape(IShape<T> shape) {
-    this.shape = shape;
-  }
+//  public void setShape(IShape<T> shape) {
+//    this.shape = shape;
+//  }
 
-  @Override
-  public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-    if (shape != null) {
-      T te = getTileEntitySafe(worldIn, pos);
-      if (te != null) {
-        return shape.getBlockFaceShape(worldIn, state, pos, face, te);
-      } else {
-        return shape.getBlockFaceShape(worldIn, state, pos, face);
-      }
-    }
-    return super.getShape(state, worldIn, pos, context);
-  }
 
-  @Override
-  public final @Nonnull BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos,
-      @Nonnull EnumFacing face) {
-    if (shape != null) {
-      T te = getTileEntitySafe(worldIn, pos);
-      if (te != null) {
-        return shape.getBlockFaceShape(worldIn, state, pos, face, te);
-      } else {
-        return shape.getBlockFaceShape(worldIn, state, pos, face);
-      }
-    }
-    return super.getBlockFaceShape(worldIn, state, pos, face);
-  }
+  // TODO: This shit defo needs redoing, so for now I'm commenting it out
 
-  private IShape<T> shape = null;
-
-  public static interface IShape<T> {
-    @Nonnull
-    BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face);
-
-    default @Nonnull BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos,
-        @Nonnull EnumFacing face, @Nonnull T te) {
-      return getBlockFaceShape(worldIn, state, pos, face);
-    }
-  }
-
-  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape allFaces) {
-    return new IShape<T>() {
-      @Override
-      @Nonnull
-      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
-        return allFaces;
-      }
-    };
-  }
-
-  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape upDown, @Nonnull BlockFaceShape allSides) {
-    return new IShape<T>() {
-      @Override
-      @Nonnull
-      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
-        return face == EnumFacing.UP || face == EnumFacing.DOWN ? upDown : allSides;
-      }
-    };
-  }
-
-  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape down, @Nonnull BlockFaceShape up, @Nonnull BlockFaceShape allSides) {
-    return new IShape<T>() {
-      @Override
-      @Nonnull
-      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
-        return face == EnumFacing.UP ? up : face == EnumFacing.DOWN ? down : allSides;
-      }
-    };
-  }
-
-  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape... faces) {
-    return new IShape<T>() {
-      @SuppressWarnings("null")
-      @Override
-      @Nonnull
-      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
-        return faces[face.ordinal()];
-      }
-    };
-  }
+//  @Override
+//  public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+//    if (shape != null) {
+//      T te = getTileEntitySafe(worldIn, pos);
+//      if (te != null) {
+//        return shape.getBlockFaceShape(worldIn, state, pos, face, te);
+//      } else {
+//        return shape.getBlockFaceShape(worldIn, state, pos, face);
+//      }
+//    }
+//    return super.getShape(state, worldIn, pos, context);
+//  }
+//
+//  @Override
+//  public final @Nonnull BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos,
+//      @Nonnull EnumFacing face) {
+//    if (shape != null) {
+//      T te = getTileEntitySafe(worldIn, pos);
+//      if (te != null) {
+//        return shape.getBlockFaceShape(worldIn, state, pos, face, te);
+//      } else {
+//        return shape.getBlockFaceShape(worldIn, state, pos, face);
+//      }
+//    }
+//    return super.getBlockFaceShape(worldIn, state, pos, face);
+//  }
+//
+//  private IShape<T> shape = null;
+//
+//  public static interface IShape<T> {
+//    @Nonnull
+//    BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face);
+//
+//    default @Nonnull BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos,
+//        @Nonnull EnumFacing face, @Nonnull T te) {
+//      return getBlockFaceShape(worldIn, state, pos, face);
+//    }
+//  }
+//
+//  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape allFaces) {
+//    return new IShape<T>() {
+//      @Override
+//      @Nonnull
+//      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
+//        return allFaces;
+//      }
+//    };
+//  }
+//
+//  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape upDown, @Nonnull BlockFaceShape allSides) {
+//    return new IShape<T>() {
+//      @Override
+//      @Nonnull
+//      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
+//        return face == EnumFacing.UP || face == EnumFacing.DOWN ? upDown : allSides;
+//      }
+//    };
+//  }
+//
+//  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape down, @Nonnull BlockFaceShape up, @Nonnull BlockFaceShape allSides) {
+//    return new IShape<T>() {
+//      @Override
+//      @Nonnull
+//      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
+//        return face == EnumFacing.UP ? up : face == EnumFacing.DOWN ? down : allSides;
+//      }
+//    };
+//  }
+//
+//  protected @Nonnull IShape<T> mkShape(@Nonnull BlockFaceShape... faces) {
+//    return new IShape<T>() {
+//      @SuppressWarnings("null")
+//      @Override
+//      @Nonnull
+//      public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face) {
+//        return faces[face.ordinal()];
+//      }
+//    };
+//  }
 
 }

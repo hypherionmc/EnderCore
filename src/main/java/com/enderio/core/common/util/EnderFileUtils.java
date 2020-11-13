@@ -32,7 +32,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 
 import com.enderio.core.EnderCore;
-import com.enderio.core.common.config.ConfigHandler;
 
 public class EnderFileUtils {
   public static final FileFilter pngFilter = FileFilterUtils.suffixFileFilter(".png");

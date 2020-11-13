@@ -6,11 +6,9 @@ import javax.annotation.Nullable;
 import com.enderio.core.common.util.NNList;
 
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
-import net.minecraftforge.oredict.OreDictionary;
 
 class OreThing implements IThing.Zwieback {
 

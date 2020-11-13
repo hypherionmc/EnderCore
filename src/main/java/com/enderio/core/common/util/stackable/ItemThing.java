@@ -7,9 +7,7 @@ import com.enderio.core.common.util.NNList;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlockSpecial;
 import net.minecraft.item.ItemStack;
 
 class ItemThing implements IThing {

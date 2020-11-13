@@ -7,10 +7,7 @@ import net.minecraft.util.text.ITextComponent;
 import javax.annotation.Nonnull;
 
 public class BaseButton extends Button {
-    private static final IPressable DUD_PRESSABLE = new IPressable() {
-        @Override
-        public void onPress(Button p_onPress_1_) { }
-    };
+    private static final IPressable DUD_PRESSABLE = p_onPress_1_ -> { };
 
     public BaseButton(int x, int y, int width, int height, ITextComponent title) {
         super(x, y, width, height, title, DUD_PRESSABLE);
@@ -52,6 +49,11 @@ public class BaseButton extends Button {
     @Override
     protected boolean clicked(double mouseX, double mouseY) {
         return isActive() && super.clicked(mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return isActive() && super.mouseClicked(mouseX, mouseY, button);
     }
 
     /**

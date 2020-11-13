@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 
 import com.enderio.core.EnderCore;
 import com.enderio.core.api.common.enchant.IAdvancedEnchant;
-import com.enderio.core.common.config.ConfigHandler;
 import com.enderio.core.common.util.NullHelper;
 import com.google.common.base.Predicate;
 

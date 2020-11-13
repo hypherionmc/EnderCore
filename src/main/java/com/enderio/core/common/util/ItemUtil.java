@@ -78,25 +78,6 @@ public class ItemUtil {
     entity.world.addEntity(entity);
   }
 
-  /**
-   * Returns true if the given stack has the given Ore Dictionary name applied to it.
-   *
-   * @param stack
-   *          The ItemStack to check.
-   * @param oredict
-   *          The oredict name.
-   * @return True if the ItemStack matches the name passed.
-   */
-  public static boolean itemStackMatchesOredict(@Nonnull ItemStack stack, String oredict) {
-    int[] ids = OreDictionary.getOreIDs(stack);
-    for (int i : ids) {
-      String name = OreDictionary.getOreName(i);
-      if (name.equals(oredict)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   public static String getDurabilityString(@Nonnull ItemStack item) {
     if (item.isEmpty()) {

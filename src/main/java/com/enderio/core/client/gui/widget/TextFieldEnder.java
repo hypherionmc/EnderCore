@@ -11,6 +11,7 @@ import com.google.common.base.Strings;
 
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.util.text.ITextComponent;
 
 public class TextFieldEnder extends TextFieldWidget implements IHideable {
 
@@ -47,12 +48,12 @@ public class TextFieldEnder extends TextFieldWidget implements IHideable {
   private int yOrigin;
   private @Nullable ICharFilter filter;
 
-  public TextFieldEnder(@Nonnull FontRenderer fnt, int x, int y, int width, int height) {
-    this(fnt, x, y, width, height, null);
+  public TextFieldEnder(@Nonnull FontRenderer fnt, int x, int y, int width, int height, ITextComponent title) {
+    this(fnt, x, y, width, height, title, null);
   }
 
-  public TextFieldEnder(@Nonnull FontRenderer fnt, int x, int y, int width, int height, @Nullable ICharFilter charFilter) {
-    super(0, fnt, x, y, width, height);
+  public TextFieldEnder(@Nonnull FontRenderer fnt, int x, int y, int width, int height, ITextComponent title, @Nullable ICharFilter charFilter) {
+    super(fnt, x, y, width, height, title);
     xOrigin = x;
     yOrigin = y;
     filter = charFilter;

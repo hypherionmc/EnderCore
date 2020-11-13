@@ -33,7 +33,7 @@ public class ClientProxy extends CommonProxy {
   }
 
   @Override
-  public void onPreInit(@Nonnull FMLCommonSetupEvent event) {
+  public void setup(@Nonnull FMLCommonSetupEvent event) {
     IconUtil.instance.init();
   }
 

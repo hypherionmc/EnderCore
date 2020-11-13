@@ -20,6 +20,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -56,35 +58,27 @@ public class FluidUtil {
     return NullHelper.notnullF(FLUID_ITEM_HANDLER, "IFluidHandlerItem capability is missing");
   }
 
-  public static @Nullable IFluidHandler getFluidHandlerCapability(@Nullable ICapabilityProvider provider, @Nullable Direction side) {
-    if (provider != null && provider.hasCapability(getFluidCapability(), side)) {
-      return provider.getCapability(getFluidCapability(), side);
+  public static IFluidHandler getFluidHandlerCapability(@Nullable ICapabilityProvider provider, @Nullable Direction side) {
+    if (provider != null) {
+      return provider.getCapability(getFluidCapability(), side).resolve().orElse(null);
     }
     return null;
   }
 
-  public static @Nullable IFluidHandlerItem getFluidHandlerCapability(@Nonnull ItemStack stack) {
-    if (stack.hasCapability(getFluidItemCapability(), null)) {
-      return stack.getCapability(getFluidItemCapability(), null);
-    }
-    return null;
+  public static IFluidHandlerItem getFluidHandlerCapability(@Nonnull ItemStack stack) {
+    return stack.getCapability(getFluidItemCapability()).resolve().orElse(null);
   }
 
   public static EnumMap<Direction, IFluidHandler> getNeighbouringFluidHandlers(@Nonnull final World worldObj, @Nonnull final BlockPos location) {
     final EnumMap<Direction, IFluidHandler> res = new EnumMap<Direction, IFluidHandler>(Direction.class);
-    NNList.FACING.apply(new Callback<Direction>() {
-      @Override
-      public void apply(@Nonnull Direction dir) {
-        IFluidHandler fh = getFluidHandler(worldObj, location.offset(dir), dir.getOpposite());
-        if (fh != null) {
-          res.put(dir, fh);
-        }
-      }
+    NNList.FACING.apply(dir -> {
+      IFluidHandler fh = getFluidHandler(worldObj, location.offset(dir), dir.getOpposite());
+      res.put(dir, fh);
     });
     return res;
   }
 
-  static @Nullable IFluidHandler getFluidHandler(@Nonnull World worldObj, @Nonnull BlockPos location, @Nullable Direction side) {
+  static IFluidHandler getFluidHandler(@Nonnull World worldObj, @Nonnull BlockPos location, @Nullable Direction side) {
     return getFluidHandlerCapability(worldObj.getTileEntity(location), side);
   }
 
@@ -97,7 +91,7 @@ public class FluidUtil {
     copy.setCount(1);
     IFluidHandlerItem handler = getFluidHandlerCapability(copy);
     if (handler != null) {
-      return handler.drain(Fluid.BUCKET_VOLUME, false);
+      return handler.drain(FluidAttributes.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE);
     }
     if (Block.getBlockFromItem(copy.getItem()) instanceof IFluidBlock) {
       Fluid fluid = ((IFluidBlock) Block.getBlockFromItem(copy.getItem())).getFluid();
@@ -125,14 +119,11 @@ public class FluidUtil {
     if (handler == null) {
       return false;
     }
-    IFluidTankProperties[] props = handler.getTankProperties();
-    if (props == null) {
-      return false;
-    }
-    for (IFluidTankProperties tank : props) {
-      int cap = tank.getCapacity();
-      FluidStack contents = tank.getContents();
-      if (cap >= 0 && (contents == null || contents.amount < cap)) {
+    int tanks = handler.getTanks();
+    for (int i = 0; i < tanks; i++) {
+      int cap = handler.getTankCapacity(i);
+      FluidStack contents = handler.getFluidInTank(i);
+      if (cap >= 0 && (contents == null || contents.getAmount() < cap)) {
         return true;
       }
     }
@@ -140,7 +131,7 @@ public class FluidUtil {
   }
 
   public static @Nonnull FluidAndStackResult tryFillContainer(@Nonnull ItemStack target, @Nullable FluidStack source) {
-    if (target.isEmpty() || source == null || source.getFluid() == null || source.amount <= 0) {
+    if (target.isEmpty() || source == null || source.getFluid() == null || source.getAmount() <= 0) {
       return new FluidAndStackResult(ItemStack.EMPTY, null, target, source);
     }
 
@@ -151,22 +142,22 @@ public class FluidUtil {
       return new FluidAndStackResult(ItemStack.EMPTY, null, target, source);
     }
 
-    int filledAmount = handler.fill(source.copy(), true);
-    if (filledAmount <= 0 || filledAmount > source.amount) {
+    int filledAmount = handler.fill(source.copy(), IFluidHandler.FluidAction.EXECUTE);
+    if (filledAmount <= 0 || filledAmount > source.getAmount()) {
       return new FluidAndStackResult(ItemStack.EMPTY, null, target, source);
     }
 
     filledStack = handler.getContainer();
 
     FluidStack resultFluid = source.copy();
-    resultFluid.amount = filledAmount;
+    resultFluid.setAmount(filledAmount);
 
     ItemStack remainderStack = target.copy();
     remainderStack.shrink(1);
 
     FluidStack remainderFluid = source.copy();
-    remainderFluid.amount -= filledAmount;
-    if (remainderFluid.amount <= 0) {
+    remainderFluid.setAmount(remainderFluid.getAmount() - filledAmount);
+    if (remainderFluid.getAmount() <= 0) {
       remainderFluid = null;
     }
 
@@ -186,17 +177,17 @@ public class FluidUtil {
       return new FluidAndStackResult(null, ItemStack.EMPTY, target, source);
     }
 
-    int maxDrain = capacity - (target != null ? target.amount : 0);
+    int maxDrain = capacity - (target != null ? target.getAmount() : 0);
     FluidStack drained;
     if (target != null) {
       FluidStack available = target.copy();
-      available.amount = maxDrain;
-      drained = handler.drain(available, true);
+      available.setAmount(maxDrain);
+      drained = handler.drain(available, IFluidHandler.FluidAction.EXECUTE);
     } else {
-      drained = handler.drain(maxDrain, true);
+      drained = handler.drain(maxDrain, IFluidHandler.FluidAction.EXECUTE);
     }
 
-    if (drained == null || drained.amount <= 0 || drained.amount > maxDrain) {
+    if (drained == null || drained.getAmount() <= 0 || drained.getAmount() > maxDrain) {
       return new FluidAndStackResult(ItemStack.EMPTY, null, source, target);
     }
 
@@ -206,7 +197,7 @@ public class FluidUtil {
     remainderStack.shrink(1);
 
     FluidStack remainderFluid = target != null ? target.copy() : new FluidStack(drained, 0);
-    remainderFluid.amount += drained.amount;
+    remainderFluid.setAmount(remainderFluid.getAmount() + drained.getAmount());
 
     return new FluidAndStackResult(emptiedStack, drained, remainderStack, remainderFluid);
   }
@@ -384,7 +375,7 @@ public class FluidUtil {
     if (fluid2 == null) {
       return false;
     }
-    return fluid == fluid2 || fluid.getName().equals(fluid2.getName());
+    return fluid == fluid2 || fluid.getAttributes().getTranslationKey().equals(fluid2.getAttributes().getTranslationKey());
   }
 
 }
