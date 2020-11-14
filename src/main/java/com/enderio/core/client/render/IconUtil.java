@@ -53,9 +53,10 @@ public class IconUtil {
       @Override
       public void registerIcons(@Nonnull AtlasTexture register) {
 
-        whiteTexture = register.registerSprite(new ResourceLocation(EnderCore.MODID, "white"));
-        errorTexture = register.registerSprite(new ResourceLocation(EnderCore.MODID, "error"));
-        blankTexture = register.registerSprite(new ResourceLocation(EnderCore.MODID, "blank"));
+        //TODO
+//        whiteTexture = register.registerSprite(new ResourceLocation(EnderCore.MODID, "white"));
+//        errorTexture = register.registerSprite(new ResourceLocation(EnderCore.MODID, "error"));
+//        blankTexture = register.registerSprite(new ResourceLocation(EnderCore.MODID, "blank"));
       }
 
     });
@@ -71,10 +72,11 @@ public class IconUtil {
     }
   }
 
-  @SuppressWarnings("null") // don't trust modded models to not do stupid things...
-  public static @Nonnull TextureAtlasSprite getIconForItem(@Nonnull Item item, int meta) {
-    final TextureAtlasSprite icon = Minecraft.getInstance().getItemRenderer().getItemModelMesher().getParticleIcon(item, meta);
-    return icon != null ? icon : Minecraft.getInstance().getTextureMapBlocks().getMissingSprite();
-  }
+  // TODO
+//  @SuppressWarnings("null") // don't trust modded models to not do stupid things...
+//  public static @Nonnull TextureAtlasSprite getIconForItem(@Nonnull Item item, int meta) {
+//    final TextureAtlasSprite icon = Minecraft.getInstance().getItemRenderer().getItemModelMesher().getParticleIcon(item, meta);
+//    return icon != null ? icon : Minecraft.getInstance().getTextureMapBlocks().getMissingSprite();
+//  }
 
 }

@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,14 +23,15 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.*;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -235,141 +238,89 @@ public class Util {
 
   // Code adapted from World.rayTraceBlocks to return all
   // collided blocks
-  public static @Nonnull List<RayTraceResult> raytraceAll(@Nonnull World world, @Nonnull net.minecraft.util.math.vector.Vector3d startVector, @Nonnull net.minecraft.util.math.vector.Vector3d endVec, boolean includeLiquids) {
-    boolean ignoreBlockWithoutBoundingBox = true;
-    net.minecraft.util.math.vector.Vector3d startVec = startVector;
+  public static @Nonnull List<BlockRayTraceResult> raytraceAll(@Nonnull World world, RayTraceContext context) {
+    return doRayTrace(context, (p_217297_1_, p_217297_2_) -> {
+      BlockState blockstate = world.getBlockState(p_217297_2_);
+      FluidState fluidstate = world.getFluidState(p_217297_2_);
+      net.minecraft.util.math.vector.Vector3d vector3d = p_217297_1_.getStartVec();
+      net.minecraft.util.math.vector.Vector3d vector3d1 = p_217297_1_.getEndVec();
+      VoxelShape voxelshape = p_217297_1_.getBlockShape(blockstate, world, p_217297_2_);
+      BlockRayTraceResult blockraytraceresult = world.rayTraceBlocks(vector3d, vector3d1, p_217297_2_, voxelshape, blockstate);
+      VoxelShape voxelshape1 = p_217297_1_.getFluidShape(fluidstate, world, p_217297_2_);
+      BlockRayTraceResult blockraytraceresult1 = voxelshape1.rayTrace(vector3d, vector3d1, p_217297_2_);
+      double d0 = blockraytraceresult == null ? Double.MAX_VALUE : p_217297_1_.getStartVec().squareDistanceTo(blockraytraceresult.getHitVec());
+      double d1 = blockraytraceresult1 == null ? Double.MAX_VALUE : p_217297_1_.getStartVec().squareDistanceTo(blockraytraceresult1.getHitVec());
+      return d0 <= d1 ? blockraytraceresult : blockraytraceresult1;
+    }, (p_217302_0_) -> {
+      net.minecraft.util.math.vector.Vector3d vector3d = p_217302_0_.getStartVec().subtract(p_217302_0_.getEndVec());
+      return BlockRayTraceResult.createMiss(p_217302_0_.getEndVec(), Direction.getFacingFromVector(vector3d.x, vector3d.y, vector3d.z), new BlockPos(p_217302_0_.getEndVec()));
+    });
+  }
 
-    List<RayTraceResult> result = new ArrayList<RayTraceResult>();
+  private static List<BlockRayTraceResult> doRayTrace(RayTraceContext context, BiFunction<RayTraceContext, BlockPos, BlockRayTraceResult> rayTracer, Function<RayTraceContext, BlockRayTraceResult> missFactory) {
+    List<BlockRayTraceResult> result = new ArrayList<BlockRayTraceResult>();
 
-    if (!Double.isNaN(startVec.x) && !Double.isNaN(startVec.y) && !Double.isNaN(startVec.z)) {
-      if (!Double.isNaN(endVec.x) && !Double.isNaN(endVec.y) && !Double.isNaN(endVec.z)) {
-        int i = MathHelper.floor(endVec.x);
-        int j = MathHelper.floor(endVec.y);
-        int k = MathHelper.floor(endVec.z);
-        int l = MathHelper.floor(startVec.x);
-        int i1 = MathHelper.floor(startVec.y);
-        int j1 = MathHelper.floor(startVec.z);
-        BlockPos blockpos = new BlockPos(l, i1, j1);
-        BlockState iblockstate = world.getBlockState(blockpos);
-        Block block = iblockstate.getBlock();
-
-        if ((!ignoreBlockWithoutBoundingBox || iblockstate.getCollisionBoundingBox(world, blockpos) != Block.NULL_AABB)
-            && block.canCollideCheck(iblockstate, includeLiquids)) {
-          @Nonnull
-          RayTraceResult raytraceresult = iblockstate.collisionRayTrace(world, blockpos, startVec, endVec);
-          result.add(raytraceresult);
-        }
-
-        int k1 = 200;
-
-        while (k1-- >= 0) {
-          if (Double.isNaN(startVec.x) || Double.isNaN(startVec.y) || Double.isNaN(startVec.z)) {
-            return new ArrayList<RayTraceResult>();
-          }
-
-          if (l == i && i1 == j && j1 == k) {
-            return result;
-          }
-
-          boolean flag2 = true;
-          boolean flag = true;
-          boolean flag1 = true;
-          double d0 = 999.0D;
-          double d1 = 999.0D;
-          double d2 = 999.0D;
-
-          if (i > l) {
-            d0 = l + 1.0D;
-          } else if (i < l) {
-            d0 = l + 0.0D;
-          } else {
-            flag2 = false;
-          }
-
-          if (j > i1) {
-            d1 = i1 + 1.0D;
-          } else if (j < i1) {
-            d1 = i1 + 0.0D;
-          } else {
-            flag = false;
-          }
-
-          if (k > j1) {
-            d2 = j1 + 1.0D;
-          } else if (k < j1) {
-            d2 = j1 + 0.0D;
-          } else {
-            flag1 = false;
-          }
-
-          double d3 = 999.0D;
-          double d4 = 999.0D;
-          double d5 = 999.0D;
-          double d6 = endVec.x - startVec.x;
-          double d7 = endVec.y - startVec.y;
-          double d8 = endVec.z - startVec.z;
-
-          if (flag2) {
-            d3 = (d0 - startVec.x) / d6;
-          }
-
-          if (flag) {
-            d4 = (d1 - startVec.y) / d7;
-          }
-
-          if (flag1) {
-            d5 = (d2 - startVec.z) / d8;
-          }
-
-          if (d3 == -0.0D) {
-            d3 = -1.0E-4D;
-          }
-
-          if (d4 == -0.0D) {
-            d4 = -1.0E-4D;
-          }
-
-          if (d5 == -0.0D) {
-            d5 = -1.0E-4D;
-          }
-
-          Direction enumfacing;
-
-          if (d3 < d4 && d3 < d5) {
-            enumfacing = i > l ? Direction.WEST : Direction.EAST;
-            startVec = new net.minecraft.util.math.vector.Vector3d(d0, startVec.y + d7 * d3, startVec.z + d8 * d3);
-          } else if (d4 < d5) {
-            enumfacing = j > i1 ? Direction.DOWN : Direction.UP;
-            startVec = new net.minecraft.util.math.vector.Vector3d(startVec.x + d6 * d4, d1, startVec.z + d8 * d4);
-          } else {
-            enumfacing = k > j1 ? Direction.NORTH : Direction.SOUTH;
-            startVec = new net.minecraft.util.math.vector.Vector3d(startVec.x + d6 * d5, startVec.y + d7 * d5, d2);
-          }
-
-          l = MathHelper.floor(startVec.x) - (enumfacing == Direction.EAST ? 1 : 0);
-          i1 = MathHelper.floor(startVec.y) - (enumfacing == Direction.UP ? 1 : 0);
-          j1 = MathHelper.floor(startVec.z) - (enumfacing == Direction.SOUTH ? 1 : 0);
-          blockpos = new BlockPos(l, i1, j1);
-          BlockState iblockstate1 = world.getBlockState(blockpos);
-          Block block1 = iblockstate1.getBlock();
-
-          if (!ignoreBlockWithoutBoundingBox || iblockstate1.getMaterial() == Material.PORTAL
-              || iblockstate1.getCollisionBoundingBox(world, blockpos) != Block.NULL_AABB) {
-            if (block1.can(iblockstate1, includeLiquids)) {
-              @Nonnull
-              RayTraceResult raytraceresult1 = iblockstate1.collisionRayTrace(world, blockpos, startVec, endVec);
-              result.add(raytraceresult1);
-            }
-          }
-        }
-
-        return result;
-      } else {
-        return result;
-      }
-    } else {
+    net.minecraft.util.math.vector.Vector3d vector3d = context.getStartVec();
+    net.minecraft.util.math.vector.Vector3d vector3d1 = context.getEndVec();
+    if (vector3d.equals(vector3d1)) {
       return result;
+    } else {
+      double d0 = MathHelper.lerp(-1.0E-7D, vector3d1.x, vector3d.x);
+      double d1 = MathHelper.lerp(-1.0E-7D, vector3d1.y, vector3d.y);
+      double d2 = MathHelper.lerp(-1.0E-7D, vector3d1.z, vector3d.z);
+      double d3 = MathHelper.lerp(-1.0E-7D, vector3d.x, vector3d1.x);
+      double d4 = MathHelper.lerp(-1.0E-7D, vector3d.y, vector3d1.y);
+      double d5 = MathHelper.lerp(-1.0E-7D, vector3d.z, vector3d1.z);
+      int i = MathHelper.floor(d3);
+      int j = MathHelper.floor(d4);
+      int k = MathHelper.floor(d5);
+      BlockPos.Mutable blockpos$mutable = new BlockPos.Mutable(i, j, k);
+      BlockRayTraceResult t = rayTracer.apply(context, blockpos$mutable);
+      if (t != null) {
+        result.add(t);
+      } else {
+        double d6 = d0 - d3;
+        double d7 = d1 - d4;
+        double d8 = d2 - d5;
+        int l = MathHelper.signum(d6);
+        int i1 = MathHelper.signum(d7);
+        int j1 = MathHelper.signum(d8);
+        double d9 = l == 0 ? Double.MAX_VALUE : (double)l / d6;
+        double d10 = i1 == 0 ? Double.MAX_VALUE : (double)i1 / d7;
+        double d11 = j1 == 0 ? Double.MAX_VALUE : (double)j1 / d8;
+        double d12 = d9 * (l > 0 ? 1.0D - MathHelper.frac(d3) : MathHelper.frac(d3));
+        double d13 = d10 * (i1 > 0 ? 1.0D - MathHelper.frac(d4) : MathHelper.frac(d4));
+        double d14 = d11 * (j1 > 0 ? 1.0D - MathHelper.frac(d5) : MathHelper.frac(d5));
+
+        while(d12 <= 1.0D || d13 <= 1.0D || d14 <= 1.0D) {
+          if (d12 < d13) {
+            if (d12 < d14) {
+              i += l;
+              d12 += d9;
+            } else {
+              k += j1;
+              d14 += d11;
+            }
+          } else if (d13 < d14) {
+            j += i1;
+            d13 += d10;
+          } else {
+            k += j1;
+            d14 += d11;
+          }
+
+          BlockRayTraceResult t1 = rayTracer.apply(context, blockpos$mutable.setPos(i, j, k));
+          if (t1 != null) {
+            result.add(t1);
+          }
+        }
+
+        if (result.isEmpty())
+          result.add(missFactory.apply(context));
+      }
     }
+
+    return result;
   }
 
   public static @Nullable Direction getDirFromOffset(int xOff, int yOff, int zOff) {

@@ -10,9 +10,11 @@ import com.google.common.base.Strings;
 
 import net.minecraft.fluid.Fluid;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 
 // Custom implementation based on FluidTank, but with a Fluid type restriction instead of a predicate so it can be saved in NBT.
 public class SmartTank implements IFluidHandler, IFluidTank {
@@ -277,9 +279,9 @@ public class SmartTank implements IFluidHandler, IFluidTank {
 
     public void writeCommon(@Nonnull String name, @Nonnull CompoundNBT nbtRoot) {
         CompoundNBT tankRoot = new CompoundNBT();
-        writeToNBT(tankRoot);
+        fluid.writeToNBT(nbtRoot);
         if (fluidRestriction != null) {
-            tankRoot.putString("FluidRestriction", NullHelper.notnullF(fluidRestriction.getName(), "encountered fluid with null name"));
+            tankRoot.putString("FluidRestriction", NullHelper.notnullF(fluidRestriction.getRegistryName().toString(), "encountered fluid with null name"));
         }
         tankRoot.putInt("Capacity", capacity);
         nbtRoot.put(name, tankRoot);
@@ -288,11 +290,11 @@ public class SmartTank implements IFluidHandler, IFluidTank {
     public void readCommon(@Nonnull String name, @Nonnull CompoundNBT nbtRoot) {
         if (nbtRoot.contains(name)) {
             CompoundNBT tankRoot = (CompoundNBT) nbtRoot.get(name);
-            readFromNBT(tankRoot);
+            fluid = FluidStack.loadFluidStackFromNBT(nbtRoot);
             if (tankRoot.contains("FluidRestriction")) {
                 String fluidName = tankRoot.getString("FluidRestriction");
                 if (!Strings.isNullOrEmpty(fluidName)) {
-                    fluidRestriction = FluidRegistry.getFluid(fluidName);
+                    fluidRestriction = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(fluidName));
                 }
             }
             if (tankRoot.contains("Capacity")) {

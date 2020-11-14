@@ -9,7 +9,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class GuiToolTip implements IHideable {
+public class TooltipWidget implements IHideable {
 
   private static final long DELAY = 0;
 
@@ -25,7 +25,7 @@ public class GuiToolTip implements IHideable {
 
   private boolean visible = true;
 
-  public GuiToolTip(@Nonnull Rectangle bounds, String... lines) {
+  public TooltipWidget(@Nonnull Rectangle bounds, String... lines) {
     this.bounds = bounds;
     if (lines != null) {
       text = new ArrayList<String>(lines.length);
@@ -37,7 +37,7 @@ public class GuiToolTip implements IHideable {
     }
   }
 
-  public GuiToolTip(@Nonnull Rectangle bounds, @Nullable List<String> lines) {
+  public TooltipWidget(@Nonnull Rectangle bounds, @Nullable List<String> lines) {
     this.bounds = bounds;
     if (lines == null) {
       text = new ArrayList<String>();

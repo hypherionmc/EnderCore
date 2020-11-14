@@ -1,6 +1,7 @@
 package com.enderio.core.common;
 
 import java.awt.Point;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -27,6 +28,7 @@ import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -228,7 +230,7 @@ public abstract class ContainerEnderCap<T extends IItemHandler, S extends TileEn
       for (Slot slot : targets) {
         if (isSlotEnabled(slot) && slot.getHasStack()) {
           ItemStack stackInSlot = slot.getStack();
-          if (stackInSlot.getItem() == stackToMove.getItem() && (!stackToMove.getHasSubtypes() || stackToMove.getItemDamage() == stackInSlot.getItemDamage())
+          if (stackInSlot.getItem() == stackToMove.getItem()
               && ItemStack.areItemStackTagsEqual(stackToMove, stackInSlot) && slot.isItemValid(stackToMove) && stackToMove != stackInSlot) {
             int mergedSize = stackInSlot.getCount() + stackToMove.getCount();
             int maxStackSize = Math.min(stackToMove.getMaxStackSize(), slot.getItemStackLimit(stackToMove));
@@ -265,13 +267,33 @@ public abstract class ContainerEnderCap<T extends IItemHandler, S extends TileEn
     return result;
   }
 
+  private static final Field listeners;
+
+  static {
+    try {
+      listeners = ObfuscationReflectionHelper.findField(Container.class, "listeners");
+      listeners.setAccessible(true);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected List<IContainerListener> getListeners() {
+    try {
+      Object val = listeners.get(this);
+      return (List<IContainerListener>) val;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Override
   public void detectAndSendChanges() {
     super.detectAndSendChanges();
     // keep in sync with ContainerEnder#detectAndSendChanges()
     final SUpdateTileEntityPacket updatePacket = te != null ? te.getUpdatePacket() : null;
     if (updatePacket != null) {
-      for (IContainerListener containerListener : listeners) {
+      for (IContainerListener containerListener : getListeners()) {
         if (containerListener instanceof ServerPlayerEntity) {
           ((ServerPlayerEntity) containerListener).connection.sendPacket(updatePacket);
         }

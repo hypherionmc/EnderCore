@@ -11,6 +11,8 @@ import com.enderio.core.common.vecmath.Vector3d;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityClassification;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.projectile.FireworkRocketEntity;
@@ -24,6 +26,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class EntityUtil {
 
@@ -101,9 +104,9 @@ public class EntityUtil {
 
   public static @Nonnull NNList<ResourceLocation> getAllRegisteredMobNames() {
     NNList<ResourceLocation> result = new NNList<ResourceLocation>();
-    for (ResourceLocation entityName : EntityList.getEntityNameList()) {
-      final Class<? extends Entity> clazz = EntityList.getClass(NullHelper.notnullF(entityName, "EntityList.getEntityNameList()"));
-      if (clazz != null && LivingEntity.class.isAssignableFrom(clazz)) {
+    for (ResourceLocation entityName : ForgeRegistries.ENTITIES.getKeys()) {
+      EntityType<?> entityType = ForgeRegistries.ENTITIES.getValue(entityName);
+      if (entityType != null && entityType.getClassification() != EntityClassification.MISC) {
         result.add(entityName);
       }
     }
@@ -112,8 +115,8 @@ public class EntityUtil {
 
   public static boolean isRegisteredMob(ResourceLocation entityName) {
     if (entityName != null) {
-      final Class<? extends Entity> clazz = EntityList.getClass(entityName);
-      return clazz != null && LivingEntity.class.isAssignableFrom(clazz);
+      EntityType<?> entityType = ForgeRegistries.ENTITIES.getValue(entityName);
+      return entityType != null && entityType.getClassification() != EntityClassification.MISC;
     }
     return false;
   }

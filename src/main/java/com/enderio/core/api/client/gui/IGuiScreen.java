@@ -5,15 +5,15 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import com.enderio.core.client.gui.GhostSlotHandler;
-import com.enderio.core.client.gui.widget.GuiToolTip;
+import com.enderio.core.client.gui.widget.TooltipWidget;
 import net.minecraft.client.gui.widget.button.Button;
 
 
 public interface IGuiScreen {
 
-  void addToolTip(@Nonnull GuiToolTip toolTip);
+  void addToolTip(@Nonnull TooltipWidget toolTip);
 
-  boolean removeToolTip(@Nonnull GuiToolTip toolTip);
+  boolean removeToolTip(@Nonnull TooltipWidget toolTip);
 
   void clearToolTips();
 

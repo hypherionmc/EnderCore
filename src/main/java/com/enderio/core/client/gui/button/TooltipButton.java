@@ -6,10 +6,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.enderio.core.api.client.gui.IGuiScreen;
-import com.enderio.core.client.gui.widget.GuiToolTip;
+import com.enderio.core.client.gui.widget.TooltipWidget;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.text.ITextComponent;
 
 public class TooltipButton extends HideableButton {
@@ -18,7 +17,8 @@ public class TooltipButton extends HideableButton {
   protected int yOrigin;
   protected @Nonnull IGuiScreen gui;
   protected @Nullable String[] toolTipText;
-  protected @Nullable GuiToolTip toolTip;
+  protected @Nullable
+  TooltipWidget toolTip;
 
   public TooltipButton(@Nonnull IGuiScreen gui, int x, int y, int widthIn, int heightIn, @Nonnull ITextComponent buttonText) {
     super(x, y, widthIn, heightIn, buttonText);
@@ -38,13 +38,13 @@ public class TooltipButton extends HideableButton {
     if (toolTip != null) {
       toolTip.setToolTipText(tooltipText);
     } else {
-      toolTip = new GuiToolTip(getBounds(), tooltipText);
+      toolTip = new TooltipWidget(getBounds(), tooltipText);
     }
     this.toolTipText = tooltipText;
     updateTooltipBounds();
   }
 
-  public void setToolTip(GuiToolTip newToolTip) {
+  public void setToolTip(TooltipWidget newToolTip) {
     boolean addTooltip = false;
     if (toolTip != null) {
       addTooltip = gui.removeToolTip(toolTip);
@@ -84,7 +84,8 @@ public class TooltipButton extends HideableButton {
     return height;
   }
 
-  public @Nullable GuiToolTip getToolTip() {
+  public @Nullable
+  TooltipWidget getToolTip() {
     return toolTip;
   }
 

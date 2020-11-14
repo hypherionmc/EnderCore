@@ -74,6 +74,9 @@ public class SpecialTooltipHandler {
     }
   }
 
+  //Show durability on item tooltips.", "0 - Off", "1 - Always on", "2 - Only with shift", "3 - Only in debug mode
+  private static int showDurabilityTooltips = 1;
+
   public static boolean showDurability(boolean shiftDown) {
     return showDurabilityTooltips == 3 ? Minecraft.getInstance().gameSettings.advancedItemTooltips
         : showDurabilityTooltips == 2 ? shiftDown : showDurabilityTooltips == 1;

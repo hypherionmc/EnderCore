@@ -205,7 +205,7 @@ public class InventorySlot implements IItemHandler {
   }
 
   public void readFromNBT(@Nonnull CompoundNBT tag) {
-    itemStack = new ItemStack(ItemStack.EMPTY, 1, tag);
+    itemStack = ItemStack.read(tag);
   }
 
   public void clear() {
@@ -245,6 +245,12 @@ public class InventorySlot implements IItemHandler {
   @Override
   public int getSlotLimit(int slot) {
     return getMaxStackSize();
+  }
+
+  @Override
+  public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+    // TODO: Do we need validation or smth
+    return false;
   }
 
 }

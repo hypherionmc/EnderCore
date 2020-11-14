@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 import com.enderio.core.client.gui.button.BaseButton;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.java.games.input.Mouse;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
@@ -21,9 +20,8 @@ import net.minecraft.util.text.ITextComponent;
 import com.enderio.core.api.client.gui.IGuiOverlay;
 import com.enderio.core.api.client.gui.IGuiScreen;
 import com.enderio.core.client.gui.ToolTipManager.ToolTipRenderer;
-import com.enderio.core.client.gui.button.IconButton;
 import com.enderio.core.client.gui.widget.GhostSlot;
-import com.enderio.core.client.gui.widget.GuiToolTip;
+import com.enderio.core.client.gui.widget.TooltipWidget;
 import com.enderio.core.client.gui.widget.TextFieldEnder;
 import com.enderio.core.client.gui.widget.VScrollbar;
 import com.enderio.core.common.util.NNList;
@@ -145,7 +143,7 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
     return false;
   }
 
-  public void addToolTip(@Nonnull GuiToolTip toolTip) {
+  public void addToolTip(@Nonnull TooltipWidget toolTip) {
     ttMan.addToolTip(toolTip);
   }
 
@@ -298,7 +296,7 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
 
   public void addDrawingElement(@Nonnull IDrawingElement element) {
     drawingElements.add(element);
-    GuiToolTip tooltip = element.getTooltip();
+    TooltipWidget tooltip = element.getTooltip();
     if (tooltip != null) {
       addToolTip(tooltip);
     }
@@ -306,7 +304,7 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
 
   public void removeDrawingElement(@Nonnull IDrawingElement element) {
     drawingElements.remove(element);
-    GuiToolTip tooltip = element.getTooltip();
+    TooltipWidget tooltip = element.getTooltip();
     if (tooltip != null) {
       removeToolTip(tooltip);
     }
@@ -449,7 +447,7 @@ public abstract class BaseContainerScreen<T extends Container> extends Container
   protected abstract @Nonnull ResourceLocation getGuiTexture();
 
   @Override
-  public boolean removeToolTip(@Nonnull GuiToolTip toolTip) {
+  public boolean removeToolTip(@Nonnull TooltipWidget toolTip) {
     return ttMan.removeToolTip(toolTip);
   }
 

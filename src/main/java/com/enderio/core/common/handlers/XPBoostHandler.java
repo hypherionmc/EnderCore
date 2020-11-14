@@ -51,7 +51,7 @@ public class XPBoostHandler {
         if (tag.contains(NBT_KEY) && tag.getInt(NBT_KEY) >= 0) {
           int level = tag.getInt(NBT_KEY);
           ArrowEntity arrow = (ArrowEntity) killer;
-          scheduleXP(entity, getXPBoost(entity, (PlayerEntity) arrow.getShooter(), level));
+          scheduleXP(entity, getXPBoost(entity, (PlayerEntity) arrow.func_234616_v_(), level)); //func_234616_v_ - getShooter
         }
       }
     }
@@ -61,7 +61,7 @@ public class XPBoostHandler {
   public static void handleArrowFire(EntityJoinWorldEvent event) {
     if (event.getEntity() instanceof ArrowEntity) {
       ArrowEntity arrow = (ArrowEntity) event.getEntity();
-      arrow.getPersistentData().putInt(NBT_KEY, getXPBoostLevel(arrow.getShooter()));
+      arrow.getPersistentData().putInt(NBT_KEY, getXPBoostLevel(arrow.func_234616_v_()));
     }
   }
 

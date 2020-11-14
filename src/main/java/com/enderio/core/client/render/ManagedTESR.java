@@ -24,8 +24,8 @@ public abstract class ManagedTESR<T extends TileEntityBase> extends TileEntityRe
 
   protected final @Nullable Block block;
 
-  public ManagedTESR(@Nullable Block block) {
-    super(this);
+  public ManagedTESR(TileEntityRendererDispatcher rendererDispatcherIn, @Nullable Block block) {
+    super(rendererDispatcherIn);
     this.block = block;
   }
 

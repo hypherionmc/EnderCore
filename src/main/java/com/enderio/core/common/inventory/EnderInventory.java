@@ -62,6 +62,11 @@ public class EnderInventory implements IItemHandler {
       return 0;
     }
 
+    @Override
+    public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+      return false;
+    }
+
   };
 
   public EnderInventory() {
@@ -258,6 +263,11 @@ public class EnderInventory implements IItemHandler {
       return 0;
     }
 
+    @Override
+    public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+      return true;
+    }
+
     public @Nonnull Type getType() {
       return type;
     }
@@ -270,5 +280,11 @@ public class EnderInventory implements IItemHandler {
   @Override
   public int getSlotLimit(int slot) {
     return allSlots.getSlotLimit(slot);
+  }
+
+  @Override
+  public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+    // TODO: Again, do we need extra logic?
+    return true;
   }
 }

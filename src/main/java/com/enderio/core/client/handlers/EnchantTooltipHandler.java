@@ -24,7 +24,7 @@ public class EnchantTooltipHandler {
       for (Enchantment enchant : enchantments.keySet()) {
         if (enchant instanceof IAdvancedEnchant) {
           for (int i = 0; i < event.getToolTip().size(); i++) {
-            if (event.getToolTip().get(i).contains(EnderCore.lang.localizeExact(enchant.getName()))) {
+            if (event.getToolTip().get(i).getString().contains(EnderCore.lang.localizeExact(enchant.getName()))) {
               for (String s : ((IAdvancedEnchant) enchant).getTooltipDetails(event.getItemStack())) {
                 event.getToolTip().add(i + 1, new StringTextComponent(TextFormatting.DARK_GRAY.toString() + TextFormatting.ITALIC + "  - " + s));
                 i++;
