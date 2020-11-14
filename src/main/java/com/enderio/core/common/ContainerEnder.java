@@ -1,6 +1,9 @@
 package com.enderio.core.common;
 
 import java.awt.Point;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -11,6 +14,7 @@ import com.enderio.core.common.ContainerEnderCap.BaseSlotItemHandler;
 import com.enderio.core.common.util.NullHelper;
 import com.google.common.collect.Maps;
 
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -21,6 +25,7 @@ import net.minecraft.inventory.container.IContainerListener;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 @Deprecated
 public class ContainerEnder<T extends IInventory> extends Container implements GhostSlot.IGhostSlotAware {
@@ -236,6 +241,26 @@ public class ContainerEnder<T extends IInventory> extends Container implements G
     }
   }
 
+  private static final Field listeners;
+
+  static {
+    try {
+      listeners = ObfuscationReflectionHelper.findField(Container.class, "listeners");
+      listeners.setAccessible(true);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected List<IContainerListener> getListeners() {
+    try {
+      Object val = listeners.get(this);
+      return (List<IContainerListener>) val;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Override
   public void detectAndSendChanges() {
     super.detectAndSendChanges();
@@ -243,7 +268,7 @@ public class ContainerEnder<T extends IInventory> extends Container implements G
       // keep in sync with ContainerEnderCap#detectAndSendChanges()
       final SUpdateTileEntityPacket updatePacket = ((TileEntityBase) inv).getUpdatePacket();
       if (updatePacket != null) {
-        for (IContainerListener containerListener : listeners) {
+        for (IContainerListener containerListener : getListeners()) {
           if (containerListener instanceof ServerPlayerEntity) {
             ((ServerPlayerEntity) containerListener).connection.sendPacket(updatePacket);
           }

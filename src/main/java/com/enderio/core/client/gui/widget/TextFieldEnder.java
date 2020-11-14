@@ -12,6 +12,7 @@ import com.google.common.base.Strings;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class TextFieldEnder extends TextFieldWidget implements IHideable {
 
@@ -47,6 +48,17 @@ public class TextFieldEnder extends TextFieldWidget implements IHideable {
   private int xOrigin;
   private int yOrigin;
   private @Nullable ICharFilter filter;
+
+  private static Field canLoseFocus;
+
+  static {
+    try {
+      canLoseFocus = ObfuscationReflectionHelper.findField(TextFieldWidget.class, "canLoseFocus");
+      canLoseFocus.setAccessible(true);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   public TextFieldEnder(@Nonnull FontRenderer fnt, int x, int y, int width, int height, ITextComponent title) {
     this(fnt, x, y, width, height, title, null);
@@ -86,7 +98,11 @@ public class TextFieldEnder extends TextFieldWidget implements IHideable {
   }
 
   public boolean getCanLoseFocus() {
-    return canLoseFocus;
+    try {
+      return canLoseFocus.getBoolean(this);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public boolean contains(double mouseX, double mouseY) {

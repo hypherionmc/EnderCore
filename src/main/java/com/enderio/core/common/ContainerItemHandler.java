@@ -45,7 +45,7 @@ public abstract class ContainerItemHandler<T extends ICapabilityProvider> extend
   public ContainerItemHandler(@Nullable ContainerType<?> type, int id, @Nonnull PlayerInventory playerInv, @Nonnull T owner, @Nullable Direction direction) {
     super(type, id);
     this.owner = checkNotNull(owner);
-    this.inv = checkNotNull(owner.getCapability(checkNotNull(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY), direction));
+    this.inv = checkNotNull(owner.getCapability(checkNotNull(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY), direction).resolve().orElse(null));
     this.playerInv = checkNotNull(playerInv);
 
     addSlots(this.playerInv);
@@ -145,7 +145,6 @@ public abstract class ContainerItemHandler<T extends ICapabilityProvider> extend
         itemstack1 = slot.getStack();
 
         if (!itemstack1.isEmpty() && itemstack1.getItem() == par1ItemStack.getItem()
-            && (!par1ItemStack.getHasSubtypes() || par1ItemStack.getItemDamage() == itemstack1.getItemDamage())
             && ItemStack.areItemStackTagsEqual(par1ItemStack, itemstack1) && slot.isItemValid(par1ItemStack) && par1ItemStack != itemstack1) {
 
           int mergedSize = itemstack1.getCount() + par1ItemStack.getCount();

@@ -35,8 +35,7 @@ class ItemThing implements IThing {
 
   @Override
   public boolean is(@Nullable Block block) {
-    return block != null && (Item.getItemFromBlock(block) == thing || Block.getBlockFromItem(thing) == block
-        || (thing instanceof ItemBlockSpecial && ((ItemBlockSpecial) thing).getBlock() == block));
+    return block != null && (Item.getItemFromBlock(block) == thing || Block.getBlockFromItem(thing) == block);
   }
 
   @Override
@@ -52,9 +51,6 @@ class ItemThing implements IThing {
   @Override
   public @Nonnull NNList<Block> getBlocks() {
     Block block = Block.getBlockFromItem(thing);
-    if (block == Blocks.AIR && thing instanceof ItemBlockSpecial) {
-      block = ((ItemBlockSpecial) thing).getBlock();
-    }
     return block != Blocks.AIR ? new NNList<Block>(block) : NNList.<Block> emptyList();
   }
 

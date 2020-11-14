@@ -111,11 +111,12 @@ public class ExclusionThing implements Zwieback {
     NNList<ItemStack> result = new NNList<>();
     for (IThing thing : positive) {
       for (ItemStack stack : thing.getItemStacks()) {
-        if (stack.getDamage() == OreDictionary.WILDCARD_VALUE) {
-          stack.getItem().getSubItems(CreativeTabs.SEARCH, result);
-        } else {
-          result.add(stack);
-        }
+        result.add(stack);
+//        if (stack.getDamage() == OreDictionary.WILDCARD_VALUE) {
+//          stack.getItem().getSubItems(CreativeTabs.SEARCH, result);
+//        } else {
+//          result.add(stack);
+//        }
       }
     }
     for (NNIterator<ItemStack> iterator = result.iterator(); iterator.hasNext();) {

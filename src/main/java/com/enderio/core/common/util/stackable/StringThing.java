@@ -34,12 +34,12 @@ class StringThing implements IThing {
 
     @Nonnull
     String mod = "minecraft", ident = name;
-    boolean allowItem = true, allowBlock = true, allowOreDict = true;
+    boolean allowItem = true, allowBlock = true, allowTag = true;
     if (ident.startsWith("item:")) {
-      allowBlock = allowOreDict = false;
+      allowBlock = allowTag = false;
       ident = NullHelper.notnullJ(ident.substring("item:".length()), "String.substring()");
     } else if (ident.startsWith("block:")) {
-      allowItem = allowOreDict = false;
+      allowItem = allowTag = false;
       ident = NullHelper.notnullJ(ident.substring("block:".length()), "String.substring()");
     } else if (ident.startsWith("oredict:")) {
       allowBlock = allowItem = false;
@@ -47,7 +47,7 @@ class StringThing implements IThing {
     }
     int meta = -1;
     if (ident.contains(":")) {
-      allowOreDict = false;
+      allowTag = false;
       String[] split = ident.split(":", 3);
       if (split != null && split.length >= 2) {
         if (split[0] != null && !split[0].trim().isEmpty()) {
@@ -85,8 +85,8 @@ class StringThing implements IThing {
           return new ItemThing(item).bake();
         }
       }
-      if (allowOreDict) {
-        return new OreThing(ident).bake();
+      if (allowTag) {
+        return new ItemTagThing(ident).bake();
       }
     } else {
       // this ugly thing seems to be what Forge wants you to use

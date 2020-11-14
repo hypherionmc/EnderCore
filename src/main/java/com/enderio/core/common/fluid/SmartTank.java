@@ -189,12 +189,12 @@ public class SmartTank implements IFluidHandler, IFluidTank {
             if (fluid != FluidStack.EMPTY) {
                 fluid.setAmount(Math.min(capacity, amount));
             } else if (fluidRestriction != null) {
-                setFluid(new FluidStack(fluidRestriction, Math.min(capacity, amount)));
+                this.fluid = new FluidStack(fluidRestriction, Math.min(capacity, amount));
             } else {
                 throw new RuntimeException("Cannot set fluid amount of an empty tank");
             }
         } else {
-            setFluid(null);
+            this.fluid = FluidStack.EMPTY;
         }
         onContentsChanged();
     }
@@ -202,13 +202,25 @@ public class SmartTank implements IFluidHandler, IFluidTank {
     @Nonnull
     @Override
     public FluidStack drain(FluidStack resource, FluidAction action) {
-        return super.drain(resource, action);
+        if (resource.isEmpty() || !resource.isFluidEqual(fluid)) {
+            return FluidStack.EMPTY;
+        }
+        return drain(resource.getAmount(), action);
     }
 
     @Nonnull
     @Override
     public FluidStack drain(int maxDrain, FluidAction action) {
-        return super.drain(maxDrain, action);
+        int drained = maxDrain;
+        if (fluid.getAmount() < drained) {
+            drained = fluid.getAmount();
+        }
+        FluidStack stack = new FluidStack(fluid, drained);
+        if (action.execute() && drained > 0) {
+            fluid.shrink(drained);
+            onContentsChanged();
+        }
+        return stack;
     }
 
     @Nonnull
@@ -256,9 +268,8 @@ public class SmartTank implements IFluidHandler, IFluidTank {
         return drained;
     }
 
-    @Override
     public void setCapacity(int capacity) {
-        super.setCapacity(capacity);
+        this.capacity = capacity;
         if (getFluidAmount() > capacity) {
             setFluidAmount(capacity);
         }
@@ -288,7 +299,7 @@ public class SmartTank implements IFluidHandler, IFluidTank {
                 capacity = tankRoot.getInt("Capacity");
             }
         } else {
-            setFluid(null);
+            this.fluid = FluidStack.EMPTY;
             // not reseting 'restriction' here on purpose---it would destroy the one that was set at tank creation
         }
     }
@@ -302,14 +313,11 @@ public class SmartTank implements IFluidHandler, IFluidTank {
         return result;
     }
 
-    @Override
     protected void onContentsChanged() {
-        super.onContentsChanged();
-        if (tile instanceof ITankAccess) {
-            ((ITankAccess) tile).setTanksDirty();
-        } else if (tile != null) {
-            tile.markDirty();
-        }
+//        if (tile instanceof ITankAccess) {
+//            ((ITankAccess) tile).setTanksDirty();
+//        } else if (tile != null) {
+//            tile.markDirty();
+//        }
     }
-
 }

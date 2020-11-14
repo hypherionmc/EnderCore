@@ -30,8 +30,8 @@ class ItemStackThing implements IThing {
 
   @Override
   public boolean is(@Nullable ItemStack itemStack) {
-    return itemStack != null && !itemStack.isEmpty() && thing.getItem() == itemStack.getItem()
-        && (!thing.getHasSubtypes() || thing.getItemDamage() == OreDictionary.WILDCARD_VALUE || thing.getMetadata() == itemStack.getMetadata());
+    // TODO: need other checks?
+    return itemStack != null && !itemStack.isEmpty() && thing.getItem() == itemStack.getItem();
   }
 
   @Override

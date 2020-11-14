@@ -29,13 +29,4 @@ public interface IProgressTile {
   @Nonnull
   IPacket getProgressPacket();
 
-
-  public static @Nullable
-  IPacket getProgressPacket(Object o) {
-    if (o instanceof IProgressTile) {
-      return EnderPacketHandler.INSTANCE.getPacketFrom(((IProgressTile) o).getProgressPacket());
-    }
-    return null;
-  }
-
 }
