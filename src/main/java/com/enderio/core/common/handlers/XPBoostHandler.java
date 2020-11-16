@@ -5,7 +5,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import com.enderio.core.common.enchant.EnchantXPBoost;
+import com.enderio.core.common.enchantment.EnchantmentXPBoost;
 import com.enderio.core.common.util.NullHelper;
 import com.enderio.core.common.util.Scheduler;
 import com.google.common.base.Throwables;
@@ -113,7 +113,7 @@ public class XPBoostHandler {
     int result = -1;
     Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(weapon);
     for (Enchantment i : enchants.keySet()) {
-      if (i == EnchantXPBoost.instance()) {
+      if (i == EnchantmentXPBoost.instance()) {
         result = enchants.get(i);
       } else if (i == Enchantments.SILK_TOUCH) {
         // No XP boost on silk touch

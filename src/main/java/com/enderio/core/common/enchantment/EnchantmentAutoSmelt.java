@@ -1,10 +1,10 @@
-package com.enderio.core.common.enchant;
+package com.enderio.core.common.enchantment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.enderio.core.EnderCore;
-import com.enderio.core.api.common.enchant.IAdvancedEnchant;
+import com.enderio.core.api.common.enchantment.IAdvancedEnchantment;
 import com.enderio.core.common.util.NullHelper;
 import com.google.common.base.Predicate;
 
@@ -19,10 +19,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
+// TODO: Move into EIO Tools module
 @EventBusSubscriber(modid = EnderCore.MODID)
-public class EnchantAutoSmelt extends Enchantment implements IAdvancedEnchant {
+public class EnchantmentAutoSmelt extends Enchantment implements IAdvancedEnchantment {
 
-  private static EnchantAutoSmelt INSTANCE;
+  private static EnchantmentAutoSmelt INSTANCE;
 
   private static final EnchantmentType ENCH_TYPE = EnchantmentType.create("EC_AUTOSMELT", new Predicate<Item>() {
 
@@ -48,11 +49,11 @@ public class EnchantAutoSmelt extends Enchantment implements IAdvancedEnchant {
    * Can be null prior to registration, or if disabled
    */
   @Nullable
-  public static EnchantAutoSmelt instance() {
+  public static EnchantmentAutoSmelt instance() {
     return INSTANCE;
   }
 
-  private EnchantAutoSmelt() {
+  private EnchantmentAutoSmelt() {
     super(Rarity.RARE, ENCH_TYPE, new EquipmentSlotType[] { EquipmentSlotType.MAINHAND });
     setRegistryName("autosmelt");
   }
@@ -79,17 +80,23 @@ public class EnchantAutoSmelt extends Enchantment implements IAdvancedEnchant {
 
   @Override
   public boolean isAllowedOnBooks() {
-    return ConfigHandler.allowAutoSmelt;
+    // TODO: Config:
+//    return ConfigHandler.allowAutoSmelt;
+    return true;
   }
 
   @Override
   public boolean canApply(@Nonnull ItemStack stack) {
-    return ConfigHandler.allowAutoSmelt && super.canApply(stack);
+    // TODO: Config:
+//    return ConfigHandler.allowAutoSmelt && super.canApply(stack);
+    return super.canApply(stack);
   }
 
   @Override
   public boolean canApplyAtEnchantingTable(@Nonnull ItemStack stack) {
-    return ConfigHandler.allowAutoSmelt && super.canApplyAtEnchantingTable(stack);
+    // TODO: Config:
+//    return ConfigHandler.allowAutoSmelt && super.canApplyAtEnchantingTable(stack);
+    return super.canApplyAtEnchantingTable(stack);
   }
 
   @Override
@@ -99,8 +106,9 @@ public class EnchantAutoSmelt extends Enchantment implements IAdvancedEnchant {
 
   @SubscribeEvent
   public static void register(@Nonnull RegistryEvent.Register<Enchantment> event) {
-    if (ConfigHandler.allowAutoSmelt) {
-      INSTANCE = new EnchantAutoSmelt();
+    // TODO: Config:
+//    if (ConfigHandler.allowAutoSmelt) {
+      INSTANCE = new EnchantmentAutoSmelt();
       event.getRegistry().register(INSTANCE);
       Supplier<String> supplier = new Supplier<String>() {
         @Override
@@ -113,7 +121,7 @@ public class EnchantAutoSmelt extends Enchantment implements IAdvancedEnchant {
       };
       InterModComms.sendTo("enderio", "recipe:xml",supplier);
 
-    }
+//    }
   }
 
   @Override

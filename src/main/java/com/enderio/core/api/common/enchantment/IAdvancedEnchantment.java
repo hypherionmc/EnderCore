@@ -1,7 +1,6 @@
-package com.enderio.core.api.common.enchant;
+package com.enderio.core.api.common.enchantment;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.enderio.core.EnderCore;
 import com.google.common.base.Predicate;
@@ -14,26 +13,8 @@ import net.minecraft.item.ItemStack;
 /**
  * Allows your enchants to have some flavor or description text underneath them
  */
-public interface IAdvancedEnchant {
-
-  public static final EnchantmentType ALL = EnchantmentType.create("EC_REALLY_ALL", new Predicate<Item>() {
-
-    @Override
-    public boolean apply(@Nullable Item input) {
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return super.hashCode();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      return super.equals(obj);
-    }
-
-  });
+public interface IAdvancedEnchantment {
+  public static final EnchantmentType ALL = EnchantmentType.create("EC_REALLY_ALL", (Predicate<Item>) input -> true);
 
   /**
    * Get the detail for this itemstack

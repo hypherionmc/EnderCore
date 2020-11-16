@@ -12,8 +12,8 @@ import net.minecraft.client.resources.I18n;
 @SuppressWarnings("deprecation")
 public class Lang {
 
-  private static final @Nonnull String REGEX = "\\" + '|';
-  public static final char CHAR = '|';
+  private static final @Nonnull String REGEX = "\\n";
+  public static final char CHAR = '\n';
 
   private final @Nonnull String prefix;
 

@@ -44,7 +44,10 @@ public abstract class TileEntityBase extends TileEntity implements ITickableTile
       // we can get ticked after being removed from the world, ignore this
       return;
     }
-    if (ConfigHandler.allowExternalTickSpeedup || world.getGameTime() != lastUpdate) {
+
+    // TODO: Config:
+//    if (ConfigHandler.allowExternalTickSpeedup || world.getGameTime() != lastUpdate) {
+    if (world.getGameTime() != lastUpdate) {
       lastUpdate = world.getGameTime();
       doUpdate();
       sendProgressIf();

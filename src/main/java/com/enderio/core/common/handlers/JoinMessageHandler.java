@@ -14,7 +14,8 @@ public class JoinMessageHandler {
 
   @SubscribeEvent
   public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-    if(ConfigHandler.invisibleMode == 1 && ConfigHandler.instance().showInvisibleWarning()) {
+    // TODO: Config:
+//    if(ConfigHandler.invisibleMode == 1 && ConfigHandler.instance().showInvisibleWarning()) {
       String unlocBase = "chat.invis";
       String warnBase = unlocBase + ".warn.";
       String reasonBase = unlocBase + ".reason.";
@@ -31,6 +32,6 @@ public class JoinMessageHandler {
         event.getPlayer().sendMessage(new StringTextComponent(text3), Util.DUMMY_UUID);
       }
       event.getPlayer().sendMessage(new StringTextComponent(text4), Util.DUMMY_UUID);
-    }
+//    }
   }
 }

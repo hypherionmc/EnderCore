@@ -1,22 +1,5 @@
 package com.enderio.core.common.handlers;
 
-import javax.annotation.Nonnull;
-
-import com.enderio.core.common.enchant.EnchantAutoSmelt;
-import com.enderio.core.common.util.NullHelper;
-
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.item.ExperienceOrbEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-
 //@Mod.EventBusSubscriber()
 //public class AutoSmeltHandler {
 //

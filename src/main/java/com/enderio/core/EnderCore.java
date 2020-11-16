@@ -85,6 +85,8 @@ public class EnderCore implements IEnderMod {
 //    CompatRegistry.INSTANCE.handle(event);
 
     proxy.setup(event);
+
+    Things.init(event);
   }
 
 //  @SubscribeEvent

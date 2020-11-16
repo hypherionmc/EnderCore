@@ -23,8 +23,6 @@ public class EnderPacketHandler {
   private static int ID = 0;
 
   public static void init() {
-    // TODO: CONFIG PACKET.
-    // INSTANCE.registerMessage(PacketConfigSync.Handler.class, PacketConfigSync.class, 0, Side.CLIENT);
     registerClientMessage(PacketProgress.class, PacketProgress::toBytes, PacketProgress::new, PacketProgress::handle);
     registerServerMessage(PacketGhostSlot.class, PacketGhostSlot::toBytes, PacketGhostSlot::new, PacketGhostSlot::handle);
   }

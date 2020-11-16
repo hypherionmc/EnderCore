@@ -1,10 +1,10 @@
-package com.enderio.core.common.enchant;
+package com.enderio.core.common.enchantment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.enderio.core.EnderCore;
-import com.enderio.core.api.common.enchant.IAdvancedEnchant;
+import com.enderio.core.api.common.enchantment.IAdvancedEnchantment;
 import com.enderio.core.common.util.NullHelper;
 import com.google.common.base.Predicate;
 
@@ -22,10 +22,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
+// TODO: Move into EIO Tools module
 @EventBusSubscriber(modid = EnderCore.MODID)
-public class EnchantXPBoost extends Enchantment implements IAdvancedEnchant {
+public class EnchantmentXPBoost extends Enchantment implements IAdvancedEnchantment {
 
-  private static EnchantXPBoost INSTANCE;
+  private static EnchantmentXPBoost INSTANCE;
 
   private static final EnchantmentType ENCH_TYPE = EnchantmentType.create("EC_XPBOOST", new Predicate<Item>() {
 
@@ -51,11 +52,11 @@ public class EnchantXPBoost extends Enchantment implements IAdvancedEnchant {
    * Can be null prior to registration, or if disabled
    */
   @Nullable
-  public static EnchantXPBoost instance() {
+  public static EnchantmentXPBoost instance() {
     return INSTANCE;
   }
 
-  private EnchantXPBoost() {
+  private EnchantmentXPBoost() {
     // The ResourceLocation is mostly irrelevant, it's just a key to retrieve the enchantment with
     super(Rarity.UNCOMMON, ENCH_TYPE, new EquipmentSlotType[] { EquipmentSlotType.MAINHAND, EquipmentSlotType.OFFHAND });
     setRegistryName("xpboost");
@@ -88,17 +89,23 @@ public class EnchantXPBoost extends Enchantment implements IAdvancedEnchant {
 
   @Override
   public boolean isAllowedOnBooks() {
-    return ConfigHandler.allowXPBoost;
+    // TODO: Config:
+//    return ConfigHandler.allowXPBoost;
+    return true;
   }
 
   @Override
   public boolean canApply(@Nonnull ItemStack stack) {
-    return ConfigHandler.allowXPBoost && super.canApply(stack);
+    // TODO: Config:
+//    return ConfigHandler.allowXPBoost && super.canApply(stack);
+    return super.canApply(stack);
   }
 
   @Override
   public boolean canApplyAtEnchantingTable(@Nonnull ItemStack stack) {
-    return ConfigHandler.allowXPBoost && super.canApplyAtEnchantingTable(stack);
+    // TODO: Config:
+//    return ConfigHandler.allowXPBoost && super.canApplyAtEnchantingTable(stack);
+    return super.canApplyAtEnchantingTable(stack);
   }
 
   @Override
@@ -108,8 +115,9 @@ public class EnchantXPBoost extends Enchantment implements IAdvancedEnchant {
 
   @SubscribeEvent
   public static void register(@Nonnull RegistryEvent.Register<Enchantment> event) {
-    if (ConfigHandler.allowXPBoost) {
-      INSTANCE = new EnchantXPBoost();
+    // TODO: Config:
+//    if (ConfigHandler.allowXPBoost) {
+      INSTANCE = new EnchantmentXPBoost();
       event.getRegistry().register(INSTANCE);
       Supplier<String> supplier = new Supplier<String>() {
         @Override
@@ -121,6 +129,6 @@ public class EnchantXPBoost extends Enchantment implements IAdvancedEnchant {
         }
       };
       InterModComms.sendTo("enderio", "recipe:xml", supplier);
-    }
+//    }
   }
 }

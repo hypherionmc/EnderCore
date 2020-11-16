@@ -30,7 +30,9 @@ class FireworkHandler {
   public void onAchievement(AdvancementEvent event) {
     final @Nonnull Advancement advancement = NullHelper.notnullF(event.getAdvancement(), "AdvancementEvent.getAdvancement()");
     DisplayInfo display = advancement.getDisplay();
-    if (ConfigHandler.betterAchievements && !event.getEntity().world.isRemote && display != null && display.shouldAnnounceToChat()) {
+    // TODO: Config:
+//    if (ConfigHandler.betterAchievements && !event.getEntity().world.isRemote && display != null && display.shouldAnnounceToChat()) {
+    if (!event.getEntity().world.isRemote && display != null && display.shouldAnnounceToChat()) {
       event.getPlayer().getPersistentData().putInt("fireworksLeft", 9);
       event.getPlayer().getPersistentData().putBoolean("fireworkDelay", false);
     }
@@ -38,9 +40,10 @@ class FireworkHandler {
 
   @SubscribeEvent
   public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-    if(!ConfigHandler.newYearsFireworks) {
-      return;
-    }
+    // TODO: Config:
+//    if(!ConfigHandler.newYearsFireworks) {
+//      return;
+//    }
     
     PlayerEntity player = event.player;
 
