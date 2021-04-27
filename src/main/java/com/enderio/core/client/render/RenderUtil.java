@@ -3,16 +3,17 @@ package com.enderio.core.client.render;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.enderio.core.api.client.render.VertexTransform;
 import com.enderio.core.client.handlers.ClientHandler;
 import com.enderio.core.common.util.NNList;
 import com.enderio.core.common.vecmath.*;
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.model.BakedQuad;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.renderer.texture.AtlasTexture;
@@ -39,18 +40,24 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
+import net.minecraftforge.client.model.pipeline.LightUtil;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
+import static net.minecraft.client.renderer.vertex.DefaultVertexFormats.*;
 import static net.minecraft.util.Direction.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11C.glDepthMask;
@@ -159,36 +166,36 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
 
   public static void renderQuad2D(double x, double y, double z, double width, double height, int colorRGB) {
 
-    GlStateManager.disableTexture();
+    RenderSystem.disableTexture();
 
     Vector3f col = ColorUtil.toFloat(colorRGB);
-    GlStateManager.color4f(col.x, col.y, col.z, 1.0F);
+    RenderSystem.color4f(col.x, col.y, col.z, 1.0F);
 
     Tessellator tessellator = Tessellator.getInstance();
     BufferBuilder tes = tessellator.getBuffer();
-    tes.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+    tes.begin(GL11.GL_QUADS, POSITION);
     tes.pos(x, y + height, z).endVertex();
     tes.pos(x + width, y + height, z).endVertex();
     tes.pos(x + width, y, z).endVertex();
     tes.pos(x, y, z).endVertex();
 
     tessellator.draw();
-    GlStateManager.enableTexture();
+    RenderSystem.enableTexture();
   }
 
   public static void renderQuad2D(double x, double y, double z, double width, double height, @Nonnull Vector4f colorRGBA) {
-    GlStateManager.color4f(colorRGBA.x, colorRGBA.y, colorRGBA.z, colorRGBA.w);
-    GlStateManager.disableTexture();
+    RenderSystem.color4f(colorRGBA.x, colorRGBA.y, colorRGBA.z, colorRGBA.w);
+    RenderSystem.disableTexture();
 
     Tessellator tessellator = Tessellator.getInstance();
     BufferBuilder tes = tessellator.getBuffer();
-    tes.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+    tes.begin(GL11.GL_QUADS, POSITION);
     tes.pos(x, y + height, z).endVertex();
     tes.pos(x + width, y + height, z).endVertex();
     tes.pos(x + width, y, z).endVertex();
     tes.pos(x, y, z).endVertex();
     tessellator.draw();
-    GlStateManager.enableTexture();
+    RenderSystem.enableTexture();
   }
 
   public static Matrix4d createBillboardMatrix(@Nonnull TileEntity te, @Nonnull LivingEntity entityPlayer) {
@@ -415,9 +422,9 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
 
     RenderUtil.bindBlockTexture();
     int color = fluid.getFluid().getAttributes().getColor();
-    GlStateManager.color4f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f, 1.0F);
+    RenderSystem.color4f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f, 1.0F);
 
-    GlStateManager.enableBlend();
+    RenderSystem.enableBlend();
     for (int i = 0; i < width; i += 16) {
       for (int j = 0; j < renderAmount; j += 16) {
         int drawWidth = (int) Math.min(width - i, 16);
@@ -441,8 +448,8 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
         tessellator.draw();
       }
     }
-    GlStateManager.disableBlend();
-    GlStateManager.color4f(1, 1, 1, 1);
+    RenderSystem.disableBlend();
+    RenderSystem.color4f(1, 1, 1, 1);
   }
 
   public static void drawBillboardedText(@Nonnull Vector3f pos, @Nonnull String text, float size) {
@@ -456,41 +463,41 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
   public static void drawBillboardedText(@Nonnull Vector3f pos, @Nonnull String text, float size, @Nonnull Vector4f txtCol, boolean drawShadow,
       @Nullable Vector4f shadowCol, boolean drawBackground, @Nullable Vector4f bgCol) {
 
-    GlStateManager.pushMatrix();
-    GlStateManager.translated(pos.x, pos.y, pos.z);
-    GlStateManager.rotatef(180, 1, 0, 0);
+    RenderSystem.pushMatrix();
+    RenderSystem.translated(pos.x, pos.y, pos.z);
+    RenderSystem.rotatef(180, 1, 0, 0);
 
     Minecraft mc = Minecraft.getInstance();
     FontRenderer fnt = mc.fontRenderer;
     float scale = size / fnt.FONT_HEIGHT;
-    GlStateManager.scaled(scale, scale, scale);
+    RenderSystem.scaled(scale, scale, scale);
     RenderSystem.multMatrix(new Matrix4f(mc.gameRenderer.getActiveRenderInfo().getRotation()));
 
-    GlStateManager.translated(-fnt.getStringWidth(text) / 2.0, 0, 0);
+    RenderSystem.translated(-fnt.getStringWidth(text) / 2.0, 0, 0);
     if (drawBackground && bgCol != null) {
       renderBackground(fnt, text, bgCol);
     }
     fnt.renderString(text, 0, 0, ColorUtil.getRGBA(txtCol), false, new Matrix4f(), IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer()), true, 0, 15728880);
     if (drawShadow && shadowCol != null) {
-      GlStateManager.translatef(0.5f, 0.5f, 0.1f);
+      RenderSystem.translatef(0.5f, 0.5f, 0.1f);
       fnt.renderString(text, 0, 0, ColorUtil.getRGBA(shadowCol), false, new Matrix4f(), IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer()), true, 0, 15728880);
     }
     RenderSystem.enableAlphaTest();
-    GlStateManager.popMatrix();
+    RenderSystem.popMatrix();
 
     RenderUtil.bindBlockTexture();
   }
 
   public static void renderBackground(@Nonnull FontRenderer fnt, @Nonnull String toRender, @Nonnull Vector4f color) {
 
-    GlStateManager.enableBlend(); // blend comes in as on or off depending on the player's view vector
+    RenderSystem.enableBlend(); // blend comes in as on or off depending on the player's view vector
 
-    GlStateManager.disableTexture();
-    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-    GlStateManager.shadeModel(GL_SMOOTH);
-    GlStateManager.disableAlphaTest();
-    GlStateManager.disableCull();
-    GlStateManager.depthMask(false);
+    RenderSystem.disableTexture();
+    RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+    RenderSystem.shadeModel(GL_SMOOTH);
+    RenderSystem.disableAlphaTest();
+    RenderSystem.disableCull();
+    RenderSystem.depthMask(false);
 
     RenderHelper.disableStandardItemLighting();
 
@@ -498,21 +505,21 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
     float height = fnt.FONT_HEIGHT;
     float padding = 2f;
 
-    GlStateManager.color4f(color.x, color.y, color.z, color.w);
+    RenderSystem.color4f(color.x, color.y, color.z, color.w);
 
     BufferBuilder tes = Tessellator.getInstance().getBuffer();
-    tes.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+    tes.begin(GL11.GL_QUADS, POSITION);
     tes.pos(-padding, -padding, 0).endVertex();
     tes.pos(-padding, height + padding, 0).endVertex();
     tes.pos(width + padding, height + padding, 0).endVertex();
     tes.pos(width + padding, -padding, 0).endVertex();
     Tessellator.getInstance().draw();
 
-    GlStateManager.enableTexture();
-    GlStateManager.enableCull();
-    GlStateManager.enableAlphaTest();
+    RenderSystem.enableTexture();
+    RenderSystem.enableCull();
+    RenderSystem.enableAlphaTest();
     RenderHelper.enableStandardItemLighting();
-    GlStateManager.disableLighting();
+    RenderSystem.disableLighting();
   }
 
   /**
@@ -579,7 +586,7 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
 
   public static void renderBoundingBox(@Nonnull final BoundingBox bb) {
     final BufferBuilder tes = Tessellator.getInstance().getBuffer();
-    tes.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+    tes.begin(GL11.GL_QUADS, POSITION);
     NNList.FACING.apply(new NNList.Callback<Direction>() {
       @Override
       public void apply(@Nonnull Direction e) {
@@ -623,7 +630,7 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
     int l = RenderUtil.getLightBrightnessForSkyBlocks(world, pos, 0);
     int l1 = l % 65536;
     int l2 = l / 65536;
-    GlStateManager.color4f(f, f, f, 1);
+    RenderSystem.color4f(f, f, f, 1);
     // OpenGLHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, l1, l2);
   }
 
@@ -635,6 +642,7 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
     }
     return i1 << 20 | j1 << 4;
   }
+
 /*
   public static void renderBlockModel(@Nonnull final World world, @Nonnull final BlockPos pos, boolean translateToOrigin) {
     final RenderType oldRenderLayer = MinecraftForgeClient.getRenderLayer();
@@ -668,146 +676,144 @@ public static final @Nonnull Vector4f DEFAULT_TEXT_SHADOW_COL = new Vector4f(0.3
     Minecraft.getInstance().getRenderItem().renderItem(stack, model);
   }
   */
-//
-//  @Nonnull
-//  private static final Vector4f FULL_UVS = new Vector4f(0, 0, 1, 1);
-//
-//  public static void addBakedQuads(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex) {
-//    addBakedQuads(quads, bb, FULL_UVS, tex);
-//  }
-//
-//  public static void addBakedQuads(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull Vector4f uvs, @Nonnull TextureAtlasSprite tex) {
-//    addBakedQuads(quads, bb, uvs, tex, null);
-//  }
-//
-//  public static void addBakedQuads(@Nonnull final List<BakedQuad> quads, @Nonnull final BoundingBox bb, @Nonnull final TextureAtlasSprite tex,
-//      final Vector4f color) {
-//    addBakedQuads(quads, bb, FULL_UVS, tex, color);
-//  }
-//
-//  public static void addBakedQuads(@Nonnull final List<BakedQuad> quads, @Nonnull final BoundingBox bb, @Nonnull Vector4f uvs, @Nonnull final TextureAtlasSprite tex,
-//      final Vector4f color) {
-//    NNList.FACING.apply(new Callback<Direction>() {
-//      @Override
-//      public void apply(@Nonnull Direction face) {
-//        addBakedQuadForFace(quads, bb, tex, face, uvs, null, false, false, true, color);
-//      }
-//    });
-//  }
-//
-//  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face) {
-//    addBakedQuadForFace(quads, bb, tex, face, FULL_UVS);
-//  }
-//
-//  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
-//      @Nonnull Vector4f uvs) {
-//    addBakedQuadForFace(quads, bb, tex, face, uvs, false, false);
-//  }
-//
-//  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
-//      boolean rotateUV, boolean flipU) {
-//    addBakedQuadForFace(quads, bb, tex, face, FULL_UVS, rotateUV, flipU);
-//  }
-//
-//  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
-//      @Nonnull Vector4f uvs, boolean rotateUV, boolean flipU) {
-//    addBakedQuadForFace(quads, bb, tex, face, null, rotateUV, flipU, true, null);
-//  }
-//
-//  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
-//      @Nullable VertexTransform xform, boolean rotateUV, boolean flipU, boolean recolor, @Nullable Vector4f color) {
-//    addBakedQuadForFace(quads, bb, tex, face, FULL_UVS, null, rotateUV, flipU, recolor, color);
-//  }
-//
-//  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
-//      @Nonnull Vector4f uvs, @Nullable VertexTransform xform, boolean rotateUV, boolean flipU, boolean recolor, @Nullable Vector4f color) {
-//    UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(DefaultVertexFormats.ITEM);
-//    List<Vertex> corners = bb.getCornersWithUvForFace(face, uvs.x, uvs.z, uvs.y, uvs.w);
-//    builder.setQuadOrientation(face);
-//    builder.setTexture(tex);
-//    if (rotateUV) {
-//      Vector2f vec = corners.get(corners.size() - 1).uv;
-//      for (int i = corners.size() - 2; i >= 0; i--) {
-//        Vertex vert = corners.get(i);
-//        Vector2f temp = vert.uv;
-//        vert.uv = vec;
-//        vec = temp;
-//      }
-//      corners.get(corners.size() - 1).uv = vec;
-//    }
-//    for (Vertex v : corners) {
-//      if (v != null) {
-//        if (xform != null) {
-//          xform.apply(v);
-//        }
-//        if (recolor) {
-//          v.color = color;
-//        }
-//        if (flipU) {
-//          v.uv.x = uvs.z - v.uv.x;
-//        }
-//        putVertexData(builder, v, face.getDirectionVec(), tex);
-//      }
-//    }
-//    quads.add(builder.build());
-//  }
-//
-//  public static void addBakedQuads(@Nonnull List<BakedQuad> quads, @Nonnull Collection<Vertex> vertices, @Nonnull TextureAtlasSprite tex,
-//      @Nullable Vector4f color) {
-//    Iterator<Vertex> it = vertices.iterator();
-//    while (it.hasNext()) {
-//      Direction face = Direction.DOWN;
-//      UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(Attributes.DEFAULT_BAKED_FORMAT);
-//      for (int i = 0; i < 4; i++) {
-//        Vertex v = it.next();
-//        if (i == 0) {
-//          face = Direction.getFacingFromVector(v.nx(), v.ny(), v.nz());
-//          builder.setQuadOrientation(face);
-//          builder.setTexture(tex);
-//        }
-//        v.color = color;
-//        putVertexData(builder, v, face.getDirectionVec(), tex);
-//      }
-//      quads.add(builder.build());
-//    }
-//  }
-//
-//  private static void putVertexData(@Nonnull Builder builder, @Nonnull Vertex v, @Nonnull Vec3i normal, @Nonnull TextureAtlasSprite sprite) {
-//    VertexFormat format = builder.getVertexFormat();
-//    for (int e = 0; e < format.getElementCount(); e++) {
-//      switch (format.getElement(e).getUsage()) {
-//      case POSITION:
-//        builder.put(e, (float) v.x(), (float) v.y(), (float) v.z(), 1);
-//        break;
-//      case COLOR:
-//        float d;
-//        if (v.normal != null) {
-//          d = LightUtil.diffuseLight(v.normal.x, v.normal.y, v.normal.z);
-//        } else {
-//          d = LightUtil.diffuseLight(normal.getX(), normal.getY(), normal.getZ());
-//        }
-//
-//        if (v.color != null) {
-//          builder.put(e, d * v.color.x, d * v.color.y, d * v.color.z, v.color.w);
-//        } else {
-//          builder.put(e, d, d, d, 1);
-//        }
-//        break;
-//      case UV:
-//        builder.put(e, sprite.getInterpolatedU(v.u() * 16), sprite.getInterpolatedV(v.v() * 16), 0, 1);
-//
-//        break;
-//      case NORMAL:
-//        if (v.normal != null) {
-//          builder.put(e, v.nx(), v.ny(), v.nz(), 0);
-//        } else {
-//          builder.put(e, normal.getX(), normal.getY(), normal.getZ(), 0);
-//        }
-//        break;
-//      default:
-//        builder.put(e);
-//      }
-//    }
-//  }
 
+  @Nonnull
+  private static final Vector4f FULL_UVS = new Vector4f(0, 0, 1, 1);
+
+  public static void addBakedQuads(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex) {
+    addBakedQuads(quads, bb, FULL_UVS, tex);
+  }
+
+  public static void addBakedQuads(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull Vector4f uvs, @Nonnull TextureAtlasSprite tex) {
+    addBakedQuads(quads, bb, uvs, tex, null);
+  }
+
+  public static void addBakedQuads(@Nonnull final List<BakedQuad> quads, @Nonnull final BoundingBox bb, @Nonnull final TextureAtlasSprite tex,
+      final Vector4f color) {
+    addBakedQuads(quads, bb, FULL_UVS, tex, color);
+  }
+
+  public static void addBakedQuads(@Nonnull final List<BakedQuad> quads, @Nonnull final BoundingBox bb, @Nonnull Vector4f uvs, @Nonnull final TextureAtlasSprite tex,
+      final Vector4f color) {
+    NNList.FACING.apply(new NNList.Callback<Direction>() {
+      @Override
+      public void apply(@Nonnull Direction face) {
+        addBakedQuadForFace(quads, bb, tex, face, uvs, null, false, false, true, color);
+      }
+    });
+  }
+
+  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face) {
+    addBakedQuadForFace(quads, bb, tex, face, FULL_UVS);
+  }
+
+  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
+      @Nonnull Vector4f uvs) {
+    addBakedQuadForFace(quads, bb, tex, face, uvs, false, false);
+  }
+
+  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
+      boolean rotateUV, boolean flipU) {
+    addBakedQuadForFace(quads, bb, tex, face, FULL_UVS, rotateUV, flipU);
+  }
+
+  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
+      @Nonnull Vector4f uvs, boolean rotateUV, boolean flipU) {
+    addBakedQuadForFace(quads, bb, tex, face, null, rotateUV, flipU, true, null);
+  }
+
+  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
+      @Nullable VertexTransform xform, boolean rotateUV, boolean flipU, boolean recolor, @Nullable Vector4f color) {
+    addBakedQuadForFace(quads, bb, tex, face, FULL_UVS, null, rotateUV, flipU, recolor, color);
+  }
+
+  public static void addBakedQuadForFace(@Nonnull List<BakedQuad> quads, @Nonnull BoundingBox bb, @Nonnull TextureAtlasSprite tex, @Nonnull Direction face,
+                                         @Nonnull Vector4f uvs, @Nullable VertexTransform xform, boolean rotateUV, boolean flipU, boolean recolor, @Nullable Vector4f color) {
+    BakedQuadBuilder builder = new BakedQuadBuilder(tex);
+
+    List<Vertex> corners = bb.getCornersWithUvForFace(face, uvs.x, uvs.z, uvs.y, uvs.w);
+    builder.setQuadOrientation(face);
+    if (rotateUV) {
+      Vector2f vec = corners.get(corners.size() - 1).uv;
+      for (int i = corners.size() - 2; i >= 0; i--) {
+        Vertex vert = corners.get(i);
+        Vector2f temp = vert.uv;
+        vert.uv = vec;
+        vec = temp;
+      }
+      corners.get(corners.size() - 1).uv = vec;
+    }
+    for (Vertex v : corners) {
+      if (v != null) {
+        if (xform != null) {
+          xform.apply(v);
+        }
+        if (recolor) {
+          v.color = color;
+        }
+        if (flipU) {
+          v.uv.x = uvs.z - v.uv.x;
+        }
+        putVertexData(builder, v, face.getDirectionVec(), tex);
+      }
+    }
+    quads.add(builder.build());
+  }
+
+  public static void addBakedQuads(@Nonnull List<BakedQuad> quads, @Nonnull Collection<Vertex> vertices, @Nonnull TextureAtlasSprite tex,
+                                   @Nullable Vector4f color) {
+    Iterator<Vertex> it = vertices.iterator();
+    while (it.hasNext()) {
+      Direction face = Direction.DOWN;
+      BakedQuadBuilder builder = new BakedQuadBuilder(tex);
+      for (int i = 0; i < 4; i++) {
+        Vertex v = it.next();
+        if (i == 0) {
+          face = Direction.getFacingFromVector(v.nx(), v.ny(), v.nz());
+          builder.setQuadOrientation(face);
+        }
+        v.color = color;
+        putVertexData(builder, v, face.getDirectionVec(), tex);
+      }
+      quads.add(builder.build());
+    }
+  }
+
+  private static void putVertexData(@Nonnull BakedQuadBuilder builder, @Nonnull Vertex v, @Nonnull Vector3i normal, @Nonnull TextureAtlasSprite sprite) {
+    VertexFormat format = builder.getVertexFormat();
+    for (int e = 0; e < format.getElements().size(); e++) {
+      switch (format.getElements().get(e).getUsage()) {
+      case POSITION:
+        builder.put(e, (float) v.x(), (float) v.y(), (float) v.z(), 1);
+        break;
+      case COLOR:
+        float d;
+        if (v.normal != null) {
+          d = LightUtil.diffuseLight(v.normal.x, v.normal.y, v.normal.z);
+        } else {
+          d = LightUtil.diffuseLight(normal.getX(), normal.getY(), normal.getZ());
+        }
+
+        if (v.color != null) {
+          builder.put(e, d * v.color.x, d * v.color.y, d * v.color.z, v.color.w);
+        } else {
+          builder.put(e, d, d, d, 1);
+        }
+        break;
+      case UV:
+        builder.put(e, sprite.getInterpolatedU(v.u() * 16), sprite.getInterpolatedV(v.v() * 16), 0, 1);
+
+        break;
+      case NORMAL:
+        if (v.normal != null) {
+          builder.put(e, v.nx(), v.ny(), v.nz(), 0);
+        } else {
+          builder.put(e, normal.getX(), normal.getY(), normal.getZ(), 0);
+        }
+        break;
+      default:
+        builder.put(e);
+      }
+    }
+  }
 }
